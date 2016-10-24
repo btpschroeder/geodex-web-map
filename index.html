@@ -7,17 +7,34 @@
         <title>Geodex Web Map</title>
         <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
         <link href="leaflet/leaflet.css" rel="stylesheet">
+        <link href="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.css" rel="stylesheet">
         <link href="style.css" rel="stylesheet">
+        <script>
+            // whole thing is kaputt in IE without this line
+            document.createElement('main');
+        </script>
     </head>
     <body>
-        <main>
-            <div id="map"></div>
+        <main class="container-fluid">
+            <div class="row" id="map-row">
+                <section class="col-md-2" id="search-column">
+                    <h1>AGSL Geodex Web Map</h1>
+                    <h2>Search by Location</h2>
+                    <p>When zoomed in enough, this button will be enabled. Searches the entire current map extent and returns all features that intersect with it, even slightly.</p>
+                    <button id="search-current-extent" type="button" class="btn btn-primary" disabled="disabled">Search current extent</button>
+                    <h2>Seach Results</h2>
+                    <div id="search-results"></div>
+                </section>
+                <section class="col-md-10" id="map">
+                </section>
+            </div>
         </main>
         <!--JavaScript files-->
         <script src="jquery/jquery-3.1.1.min.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
         <script src="leaflet/leaflet.js"></script>
         <script src="leaflet/plugins/esri-leaflet/esri-leaflet.js"></script>
+        <script src="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
         <script src="geodex-web-map.js"></script>
     </body>
 </html>
