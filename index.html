@@ -23,14 +23,14 @@
                     <p>When zoomed in enough, this button will be enabled. Searches the entire current map extent and returns all features that intersect with it, even slightly.</p>
                     <div class="radio">
                         <label>
-                            <input type="radio" name="search-extent-options" id="search-intersect" value="search-intersect" checked>
-                            Records <strong>intersecting</strong> with the current extent
+                            <input type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
+                            Records <strong> entirely within</strong> the current extent
                         </label>
                     </div>
                     <div class="radio">
                         <label>
-                            <input type="radio" name="search-extent-options" id="search-within" value="search-within">
-                            Records <strong>within</strong> current extent
+                            <input type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
+                            Records <strong>intersecting</strong> the current extent
                         </label>
                     </div>
                     <button id="search-current-extent" type="button" class="btn btn-primary" disabled="disabled">Search current extent</button>

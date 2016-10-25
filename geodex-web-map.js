@@ -19,7 +19,7 @@ $(document).ready(function(){
         $('#search-current-extent').prop('disabled', 'disabled');
             
         // this variable holds the minimum zoom level needed to activate "search current extent" button
-        var minExtentZoom = 9;
+        var minExtentZoom = 8;
             
         // add individual basemap layers
         var osmBasemap = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -28,12 +28,15 @@ $(document).ready(function(){
             attribution: 'Basemap &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         });            
         var esriWorldImageryBasemap = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            minZoom: 4,
             attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
         });
         var esriWorldTopoMap = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+            minZoom: 4,
             attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
         });
         var esriWorldStreetMap = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            minZoom: 4,
             attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
         });
             
@@ -88,11 +91,9 @@ $(document).ready(function(){
             });
             
             if ($('#search-intersect').prop("checked")) {
-                console.log("intersects search");
                 geodexSearchQuery.intersects(queryBounds);
                 // note that 'intersects' means features need only be partially included in the map extent to show up in the search results
             } else if ($('#search-within').prop("checked")){
-                console.log("within search");
                 geodexSearchQuery.within(queryBounds);
                 // whereas this returns only features ENTIRELY WITHIN the current extent
             }
@@ -114,12 +115,42 @@ $(document).ready(function(){
             var resultsHtml = // all of the output html will be stored in this variable
                 '<p><button type="button" class="btn btn-default" id="clear-results">Clear search results</button>' +
                 '<p>' +
-                'Found <strong>' + s.length + '</strong> matching results.' +
-                '</p>';
+                'Found <strong>' + s.length + '</strong> results in ';
                 
-            for (i = 0; i < s.length; i++) { // loop through every search result and create html based on each record
-                var props = s[i].properties; // change properties object to "props" to make writing html below easier
-                resultsHtml += ('<p class="search-result" id=' + props.OBJECTID +'><strong>' + props.LOCATION + '</strong><br /><em>' + props.SERIES_TIT + '</em><br />' + props.CATLOC +'</p>');
+            var seriesArray = []; // this will allow the application to group search results by map series
+                
+            for (i = 0; i < s.length; i++) { // loop through every search result and create an array containing all series names
+                if (seriesArray.indexOf(s[i].properties.SERIES_TIT) < 0) {
+                    seriesArray.push(s[i].properties.SERIES_TIT); // if series is not already in array, add it
+                }
+            }
+            
+            if ( seriesArray.indexOf(null) > 0 ) { // if a null value shows up in series list, call it something more descriptive
+                var index = seriesArray.indexOf(null);
+                seriesArray[index] = "No associated series";
+            }
+            
+            resultsHtml += ('<strong>' + seriesArray.length + '</strong> series.</p>')
+            
+            for (j = 0; j < seriesArray.length; j++) { // create headings and lists for each category in the search results
+                resultsHtml += (
+                    '<h3>' + seriesArray[j] + '</h3>'
+                    + '<ul>'
+                    + makeCategorizedList(seriesArray[j])
+                    + '</ul>'
+                )
+            }
+            
+            function makeCategorizedList(cat) { // create individual <li>s for each <ul> created in the for loop above
+                var listToReturn = '';
+                for (h = 0; h < s.length; h++) {
+                    if (cat === s[h].properties.SERIES_TIT) {
+                        listToReturn += (
+                            '<li class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</li>'
+                        )
+                    }
+                }
+                return listToReturn;
             }
             
             $('#search-results').html( // once everything else is done, change the "search-results" div's html to match that of the resultsHtml variable
@@ -145,7 +176,7 @@ $(document).ready(function(){
                     var thisFeaturesGeometry = featureToDisplay.features[0].geometry.coordinates[0];
                     for (i = 0; i < thisFeaturesGeometry.length; i++) {
                         thisFeaturesGeometry[i].reverse();
-					}
+                    }
                 temporaryLayer = L.polygon(thisFeaturesGeometry, {color: 'red'});
                 temporaryLayerGroup = L.layerGroup([temporaryLayer]);
                 temporaryLayerGroup.addTo(theMap);
