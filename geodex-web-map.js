@@ -13,7 +13,11 @@ $(document).ready(function(){
         // initialize the map
         var theMap = L.map('map') // draw the map in the element with an id of "map"
             .setView([43.038902, -87.906474], // by default, center to Milwaukee...
-            6); // ...with a zoom level of 6
+            6) // ...with a zoom level of 6
+            .setMaxBounds([ // with this method, the map will "bounce" back once the user hits the map boundary
+                [-180, -180], // this is because esri-leaflet querying gets confused otherwise
+                [180, 180]
+            ]);
             
         // disable "search current extent" button by default
         $('#search-current-extent').prop('disabled', 'disabled');
@@ -125,7 +129,9 @@ $(document).ready(function(){
                 }
             }
             
-            if ( seriesArray.indexOf(null) > 0 ) { // if a null value shows up in series list, call it something more descriptive
+            console.log(seriesArray);
+            
+            if ( seriesArray.indexOf(null) >= 0 ) { // if a null value shows up in series list, call it something more descriptive
                 var index = seriesArray.indexOf(null);
                 seriesArray[index] = "No associated series";
             }
@@ -145,6 +151,10 @@ $(document).ready(function(){
                 var listToReturn = '';
                 for (h = 0; h < s.length; h++) {
                     if (cat === s[h].properties.SERIES_TIT) {
+                        listToReturn += (
+                            '<li class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</li>'
+                        )
+                    } else if (cat === "No associated series" && s[h].properties.SERIES_TIT === null) { // need this to deal with series containing a null value
                         listToReturn += (
                             '<li class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</li>'
                         )
