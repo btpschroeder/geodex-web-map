@@ -19,8 +19,20 @@
             <div class="row" id="map-row">
                 <section class="col-md-2" id="search-column">
                     <h1>AGSL Geodex Web Map</h1>
-                    <h2>Search by Location</h2>
+                    <h2>Search by Current Map Extent</h2>
                     <p>When zoomed in enough, this button will be enabled. Searches the entire current map extent and returns all features that intersect with it, even slightly.</p>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="search-extent-options" id="search-intersect" value="search-intersect" checked>
+                            Records <strong>intersecting</strong> with the current extent
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="search-extent-options" id="search-within" value="search-within">
+                            Records <strong>within</strong> current extent
+                        </label>
+                    </div>
                     <button id="search-current-extent" type="button" class="btn btn-primary" disabled="disabled">Search current extent</button>
                     <h2>Seach Results</h2>
                     <div id="search-results"></div>
