@@ -15,9 +15,58 @@
         </script>
     </head>
     <body>
+    
+        <!-- Attribute modal... this is really really ugly, sorry -->
+        <div class="modal fade" id="attrModal" tabindex="-1" role="dialog" aria-labelledby="attrModal">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="attrModalLabel"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="table-responsive">
+                                    <table class="table" id="attr-table-1">
+                                        <thead>
+                                            <tr>
+                                                <td>Attribute</td>
+                                                <td>Value</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="table-responsive">
+                                    <table class="table" id="attr-table-2">
+                                        <thead>
+                                            <tr>
+                                                <td>Attribute</td>
+                                                <td>Value</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="close-attr-modal" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actual structural markup -->
         <main class="container-fluid">
             <div class="row" id="map-row">
-                <section class="col-md-2" id="search-column">
+                <section class="col-md-3" id="search-column">
                     <h1>AGSL Geodex Web Map</h1>
                     <h2>Search by Current Map Extent</h2>
                     <p>When zoomed in enough, this button will be enabled. Searches the entire current map extent and returns all features that intersect with it, even slightly.</p>
@@ -37,11 +86,13 @@
                     <h2>Seach Results</h2>
                     <div id="search-results"></div>
                 </section>
-                <section class="col-md-10" id="map">
+                <section class="col-md-9" id="map">
                 </section>
             </div>
         </main>
-        <!--JavaScript files-->
+        
+        <!-- JavaScript files -->
+        <script src="https://use.fontawesome.com/8a40235401.js"></script>
         <script src="jquery/jquery-3.1.1.min.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
         <script src="leaflet/leaflet.js"></script>

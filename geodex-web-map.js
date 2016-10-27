@@ -129,8 +129,6 @@ $(document).ready(function(){
                 }
             }
             
-            console.log(seriesArray);
-            
             if ( seriesArray.indexOf(null) >= 0 ) { // if a null value shows up in series list, call it something more descriptive
                 var index = seriesArray.indexOf(null);
                 seriesArray[index] = "No associated series";
@@ -152,11 +150,11 @@ $(document).ready(function(){
                 for (h = 0; h < s.length; h++) {
                     if (cat === s[h].properties.SERIES_TIT) {
                         listToReturn += (
-                            '<li class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</li>'
+                            '<li><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a></li>'
                         )
                     } else if (cat === "No associated series" && s[h].properties.SERIES_TIT === null) { // need this to deal with series containing a null value
                         listToReturn += (
-                            '<li class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</li>'
+                            '<li><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a></li>'
                         )
                     }
                 }
@@ -193,7 +191,56 @@ $(document).ready(function(){
                 outlineOnMap = true;
                 });
             });
+            
+            /////////////////////////////////////////////////
+            // click on info icon, get modal with attrs    //
+            /////////////////////////////////////////////////
+
+                $('.attr-modal-link').on('click', function(){
+                    
+                    // what record are we currently looking at? use the assigned id to figure it out
+                    var featureToLookup = ($(this).attr('id')).replace('info-', '');
+                    
+                    // get the properties for the record
+                    var geodexAttrQuery = L.esri.query({
+                        url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
+                    });
+                    geodexAttrQuery
+                        .where('"OBJECTID" = '+ featureToLookup);
+                    geodexAttrQuery.run(function(error, featureWeFound, response){
+                        
+                        var attr = featureWeFound.features[0].properties;
+                        var attrKeys = Object.keys(attr);
+                        
+                        // and now it's time to populate our modal with the attributes!
+                        $('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD);
+                        
+                        // procedurally generate the table, because we're lazy and doing it manually sounds boring
+                        var j; // used in the for loop below
+                        var k = 0; // used to get the index of the object property in the for loop
+                        
+                        for (j in attr) {
+                            
+                            // grab the name of the attribute we're looking for
+                            var currentAttribute = attr[j];
+                            
+                            if (k >= (attrKeys.length / 2)) { // throw the first half of all attributes in table #1
+                                var tableRowHtml = ( '<tr><td><strong>' + attrKeys[k] + '</strong></td><td>' + attr[j] + '</td></tr>')
+                                $('#attr-table-1>tbody').append(tableRowHtml);
+                            } else  { // throw the rest in table #2
+                                var tableRowHtml = ( '<tr><td><strong>' + attrKeys[k] + '</strong></td><td>' + attr[j] + '</td></tr>')
+                                $('#attr-table-2>tbody').append(tableRowHtml);
+                            }
+                            
+                            k++;
+                            
+                        }
+                    
+                    });
+                    
+                });
         }
+        
         
         /////////////////////////////////////////////////
         // remove feature outline on map               //
@@ -207,3 +254,14 @@ $(document).ready(function(){
         }
         
     }
+    
+/////////////////////////////////////////////////
+// empty attribute modal when user closes it   //
+/////////////////////////////////////////////////
+
+    $("#attrModal").on('hide.bs.modal', function(){
+        
+        $('#attr-table-1>tbody').empty();
+        $('#attr-table-2>tbody').empty();
+        
+    });
