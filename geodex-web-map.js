@@ -216,24 +216,19 @@ $(document).ready(function(){
                         $('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD);
                         
                         // procedurally generate the table, because we're lazy and doing it manually sounds boring
-                        var j; // used in the for loop below
-                        var k = 0; // used to get the index of the object property in the for loop
-                        
-                        for (j in attr) {
+                        for (b = 0; b < attrKeys.length; b++) {
+                            // grab the current attribute
+                            var currentAttribute = attrKeys[b];
+                            // grab the current value for the current attribute
+                            var currentValue = attr[currentAttribute];
+                            // throw them both in an html string
+                            var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>');
                             
-                            // grab the name of the attribute we're looking for
-                            var currentAttribute = attr[j];
-                            
-                            if (k >= (attrKeys.length / 2)) { // throw the first half of all attributes in table #1
-                                var tableRowHtml = ( '<tr><td><strong>' + attrKeys[k] + '</strong></td><td>' + attr[j] + '</td></tr>')
+                            if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
                                 $('#attr-table-1>tbody').append(tableRowHtml);
                             } else  { // throw the rest in table #2
-                                var tableRowHtml = ( '<tr><td><strong>' + attrKeys[k] + '</strong></td><td>' + attr[j] + '</td></tr>')
                                 $('#attr-table-2>tbody').append(tableRowHtml);
                             }
-                            
-                            k++;
-                            
                         }
                     
                     });
