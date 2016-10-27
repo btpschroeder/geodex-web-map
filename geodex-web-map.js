@@ -114,10 +114,23 @@ $(document).ready(function(){
 
         function displaySearchResults(s) { // in this function, the s parameter refers to search results passed in
         
+            function showTheResults(s) {}
+                
             var temporaryLayer;
+            var alertHtml;
+            
+            if (s.length === 1000) {
+                alertHtml = '<div class="alert alert-danger" role="alert"><strong>Your search returned too many results. Only the first 1000 results will be listed.</strong> Adjust your search parameters to return more specific records.</div>';
+            } else if (s.length > 100 && s.length < 1000) {
+                alertHtml = '<div class="alert alert-warning" role="alert"><strong>Your search returned more than 100 results.</strong> All of them are displayed below. You may wish to adjust your search parameters to return more specific records.</div>';
+            } else {
+                alertHtml = '';
+            }
 
             var resultsHtml = // all of the output html will be stored in this variable
+                '<h2>Seach Results</h2>' +
                 '<p><button type="button" class="btn btn-default" id="clear-results">Clear search results</button>' +
+                alertHtml + // were any alerts called above?
                 '<p>' +
                 'Found <strong>' + s.length + '</strong> results in ';
                 
@@ -173,6 +186,11 @@ $(document).ready(function(){
             
             // show feature boundary upon hover
             $('.search-result').on('click', function(){
+                // grab the current zoom level and bounds right away -- to be used with the return to previous extent link
+                var rememberLastExtent = {
+                    zoom: theMap.getZoom(),
+                    bounds: theMap.getBounds()
+                };
                 removeAllOutlines();
                 var featureId = $(this).attr('id');
                 var geodexBoundsQuery = L.esri.query({
@@ -186,10 +204,32 @@ $(document).ready(function(){
                         thisFeaturesGeometry[i].reverse();
                     }
                 temporaryLayer = L.polygon(thisFeaturesGeometry, {color: 'red'});
+                // check to see if outlined feature is in current map extent; pan to it if not
+                var currentExtent = theMap.getBounds();
+                var containTest = currentExtent.contains(thisFeaturesGeometry); // returns true if outline is in current extent, false if not
+                if(containTest === false) {
+                    console.log(rememberLastExtent.zoom);
+                    console.log(rememberLastExtent.bounds);
+                    var panToHere = temporaryLayer.getBounds().getCenter(); // if necessary, pan to the center of the outline
+                    theMap.panTo(panToHere, {
+                        animate: true
+                    });
+                }
                 temporaryLayerGroup = L.layerGroup([temporaryLayer]);
                 temporaryLayerGroup.addTo(theMap);
                 outlineOnMap = true;
                 });
+                
+                /////////////////////////////////////////////////
+                // return to previous extent                   //
+                /////////////////////////////////////////////////
+                
+                $('.previous-extent').on('click', function(){
+                    theMap.panTo(rememberLastExtent.bounds);
+                    theMap.zoomTo(rememberLastExtent.zoom);
+                    $(this).remove();
+                });
+                
             });
             
             /////////////////////////////////////////////////
@@ -207,6 +247,7 @@ $(document).ready(function(){
                     });
                     geodexAttrQuery
                         .where('"OBJECTID" = '+ featureToLookup);
+                        
                     geodexAttrQuery.run(function(error, featureWeFound, response){
                         
                         var attr = featureWeFound.features[0].properties;
@@ -222,7 +263,7 @@ $(document).ready(function(){
                             // grab the current value for the current attribute
                             var currentValue = attr[currentAttribute];
                             // throw them both in an html string
-                            var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>');
+                            var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
                             
                             if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
                                 $('#attr-table-1>tbody').append(tableRowHtml);
