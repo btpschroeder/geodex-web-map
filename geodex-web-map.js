@@ -85,7 +85,8 @@ $(document).ready(function(){
         /////////////////////////////////////////////////
         
         $('#search-current-extent').on('click', function(){ // when the user clicks the "search current extent" button...
-            var currentMapBounds = theMap.getBounds(); // ...get the boundaries of the current map extent
+            var currentMapBounds = theMap.getBounds(); // ...get the boundaries of the current map extent...
+            var currentMapCenter = theMap.getBounds().getCenter(); // ...and get the center of the current map extent
             var sw = currentMapBounds._southWest; // assign the southwest boundary to a variable
             var ne = currentMapBounds._northEast; // assign the northeast boundary to a variable
             var queryBounds = L.latLngBounds(sw, ne); // combine the boundaries into a leaflet latlong object
@@ -100,6 +101,8 @@ $(document).ready(function(){
             } else if ($('#search-within').prop("checked")){
                 geodexSearchQuery.within(queryBounds);
                 // whereas this returns only features ENTIRELY WITHIN the current extent
+            } else if ($('#search-center').prop("checked")){
+                geodexSearchQuery.intersects(currentMapCenter);
             }
             
             geodexSearchQuery.run(function(error, featureCollection, response){
@@ -206,10 +209,8 @@ $(document).ready(function(){
                 temporaryLayer = L.polygon(thisFeaturesGeometry, {color: 'red'});
                 // check to see if outlined feature is in current map extent; pan to it if not
                 var currentExtent = theMap.getBounds();
-                var containTest = currentExtent.contains(thisFeaturesGeometry); // returns true if outline is in current extent, false if not
+                var containTest = currentExtent.intersects(thisFeaturesGeometry); // returns true if outline is in current extent, false if not
                 if(containTest === false) {
-                    console.log(rememberLastExtent.zoom);
-                    console.log(rememberLastExtent.bounds);
                     var panToHere = temporaryLayer.getBounds().getCenter(); // if necessary, pan to the center of the outline
                     theMap.panTo(panToHere, {
                         animate: true
