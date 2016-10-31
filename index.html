@@ -63,32 +63,37 @@
             </div>
         </div>
         
-        <!-- Actual structural markup -->
+        <!-- Actual structural (sort of) markup -->
         <main class="container-fluid">
             <div class="row" id="map-row">
                 <section class="col-md-3" id="search-column">
                     <h1>AGSL Geodex Web Map</h1>
-                    <h2>Search by Current Map Extent</h2>
-                    <p>When zoomed in enough, this button will be enabled.</p>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
-                            Records <strong> entirely within</strong> the current extent
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
-                            Records <strong>intersecting</strong> the current extent
-                        </label>
-                    </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="search-extent-options" id="search-center" value="search-center">
-                            Records <strong>containing the center</strong> of the current extent
-                        </label>
-                    </div>
-                    <button id="search-current-extent" type="button" class="btn btn-primary" disabled="disabled">Search current extent</button>
+                    <form>
+                        <h2>Extent Search Type</h2>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
+                                Records <strong> entirely within</strong> the current extent
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
+                                Records <strong>intersecting</strong> the current extent
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="search-extent-options" id="search-center" value="search-center">
+                                Records <strong>containing the center of</strong> the current extent
+                            </label>
+                        </div>
+                        <h2>Years</h2>
+                        <div class="form-group">
+                            <select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
+                        </div>
+                        <button id="search-current-extent" type="button" class="btn btn-primary" disabled="disabled">Search Geodex</button>
+                    </form>
                     <div id="search-results"></div>
                 </section>
                 <section class="col-md-9" id="map">

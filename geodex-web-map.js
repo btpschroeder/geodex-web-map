@@ -1,6 +1,21 @@
 // when document is ready...
 $(document).ready(function(){
     makeTheMap(); //... render the map
+    
+    // populate the "years" drown-down inputs automatically
+    
+    /*
+        EDIT THE FOLLOWING LINE IF A MAP IS ADDED TO GEODEX WITH AN EARLIER YEAR!
+    */
+    var minYear = 1829; // <--- THIS ONE
+    var currentYear = new Date().getFullYear();
+    var dropdownYearsList;
+    for (y = minYear; y <= currentYear; y++){
+        dropdownYearsList += ('<option value="' + y + '" id="' + y +'">' + y + '</option>');
+    }
+    $('#years-from').html(dropdownYearsList);
+    $('#years-to').html(dropdownYearsList);
+    $('#years-to #' + currentYear).attr('selected', 'selected');
 });
 
 /////////////////////////////////////////////////
@@ -91,18 +106,21 @@ $(document).ready(function(){
             var ne = currentMapBounds._northEast; // assign the northeast boundary to a variable
             var queryBounds = L.latLngBounds(sw, ne); // combine the boundaries into a leaflet latlong object
             
+            var sqlQuery = makesqlQuery();
+            
             var geodexSearchQuery = L.esri.query({
                 url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
             });
             
             if ($('#search-intersect').prop("checked")) {
-                geodexSearchQuery.intersects(queryBounds);
-                // note that 'intersects' means features need only be partially included in the map extent to show up in the search results
+                geodexSearchQuery.intersects(queryBounds)
+                .where(sqlQuery);
             } else if ($('#search-within').prop("checked")){
-                geodexSearchQuery.within(queryBounds);
-                // whereas this returns only features ENTIRELY WITHIN the current extent
+                geodexSearchQuery.within(queryBounds)
+                .where(sqlQuery);
             } else if ($('#search-center').prop("checked")){
-                geodexSearchQuery.intersects(currentMapCenter);
+                geodexSearchQuery.intersects(currentMapCenter)
+                .where(sqlQuery);
             }
             
             geodexSearchQuery.run(function(error, featureCollection, response){
@@ -123,7 +141,7 @@ $(document).ready(function(){
             var alertHtml;
             
             if (s.length === 1000) {
-                alertHtml = '<div class="alert alert-danger" role="alert"><strong>Your search returned too many results. Only the first 1000 results will be listed.</strong> Adjust your search parameters to return more specific records.</div>';
+                alertHtml = '<div class="alert alert-danger" role="alert"><strong>Your search returned too many results. Only the first 1000 will be displayed below.</strong> Adjust your search parameters to return more specific records.</div>';
             } else if (s.length > 100 && s.length < 1000) {
                 alertHtml = '<div class="alert alert-warning" role="alert"><strong>Your search returned more than 100 results.</strong> All of them are displayed below. You may wish to adjust your search parameters to return more specific records.</div>';
             } else {
@@ -155,7 +173,7 @@ $(document).ready(function(){
             for (j = 0; j < seriesArray.length; j++) { // create headings and lists for each category in the search results
                 resultsHtml += (
                     '<h3>' + seriesArray[j] + '</h3>'
-                    + '<ul>'
+                    + '<ul class="list-group">'
                     + makeCategorizedList(seriesArray[j])
                     + '</ul>'
                 )
@@ -166,11 +184,11 @@ $(document).ready(function(){
                 for (h = 0; h < s.length; h++) {
                     if (cat === s[h].properties.SERIES_TIT) {
                         listToReturn += (
-                            '<li><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a></li>'
+                            '<li class="list-group-item"><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span></li>'
                         )
                     } else if (cat === "No associated series" && s[h].properties.SERIES_TIT === null) { // need this to deal with series containing a null value
                         listToReturn += (
-                            '<li><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a></li>'
+                            '<li class="list-group-item"><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span></li>'
                         )
                     }
                 }
@@ -296,9 +314,28 @@ $(document).ready(function(){
 // empty attribute modal when user closes it   //
 /////////////////////////////////////////////////
 
-    $("#attrModal").on('hide.bs.modal', function(){
+    $('#attrModal').on('hide.bs.modal', function(){
         
         $('#attr-table-1>tbody').empty();
         $('#attr-table-2>tbody').empty();
         
     });
+    
+/////////////////////////////////////////////////
+// sql query creation function                 //
+/////////////////////////////////////////////////
+
+    function makesqlQuery() {
+        
+        // this variable will (temporarily) hold the sql query used to search the map service
+        var query = '';
+        
+        // begin by looking at user year selections
+        var fromThisYear = $('#years-from').val();
+        var toThisYear = $('#years-to').val();
+        query += ('DATE >= ' + fromThisYear + ' AND DATE <= ' + toThisYear);
+
+        // and finally...
+        return query;
+        
+    }
