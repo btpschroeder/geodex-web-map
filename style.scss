@@ -39,14 +39,14 @@ h2 {
     font-size: 18px;
 }
 
-.search-result {
-    cursor: pointer;
-}
-
 #search-results {
 
-    .attr-modal-link{
+    .attr-modal-link, .show-map-outline-link{
         margin-right: 1em;
+    }
+    
+    .bookmark-link{
+        float: right;
     }
     
 }

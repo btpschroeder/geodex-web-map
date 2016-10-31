@@ -1,3 +1,5 @@
+var savedRecords = []; // this array will store any records the user has chosen to "bookmark"
+
 // when document is ready...
 $(document).ready(function(){
     makeTheMap(); //... render the map
@@ -184,11 +186,11 @@ $(document).ready(function(){
                 for (h = 0; h < s.length; h++) {
                     if (cat === s[h].properties.SERIES_TIT) {
                         listToReturn += (
-                            '<li class="list-group-item"><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span></li>'
+                            '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
                         )
                     } else if (cat === "No associated series" && s[h].properties.SERIES_TIT === null) { // need this to deal with series containing a null value
                         listToReturn += (
-                            '<li class="list-group-item"><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="true"></i></a><span class="search-result" id="' + s[h].properties.OBJECTID + '">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span></li>'
+                           '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
                         )
                     }
                 }
@@ -205,15 +207,19 @@ $(document).ready(function(){
                 $('#search-results').empty();
             });
             
-            // show feature boundary upon hover
-            $('.search-result').on('click', function(){
+            /////////////////////////////////////////////////
+            // show feature boundary link                  //
+            /////////////////////////////////////////////////
+            
+            $('.show-map-outline-link').on('click', function(){
                 // grab the current zoom level and bounds right away -- to be used with the return to previous extent link
                 var rememberLastExtent = {
                     zoom: theMap.getZoom(),
                     bounds: theMap.getBounds()
                 };
                 removeAllOutlines();
-                var featureId = $(this).attr('id');
+                var featureId = $(this).attr('id').replace('show-outline-', '');
+                console.log(featureId);
                 var geodexBoundsQuery = L.esri.query({
                     url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
                 });
@@ -252,48 +258,81 @@ $(document).ready(function(){
             });
             
             /////////////////////////////////////////////////
+            // click on bookmark icon                      //
+            /////////////////////////////////////////////////
+            
+            $('.bookmark-link').on('click', function(){
+                
+                // use the link's class to determine whether or not this is an "add" or "remove" bookmark link
+                var thisIsAddLink = $(this).hasClass('add-bookmark');
+                
+                if(thisIsAddLink) {
+                    var bookmarkThis = $(this).attr('id').replace('add-bookmark-', '');
+                    savedRecords.push(bookmarkThis);
+                    $(this).removeClass('add-bookmark');
+                    $(this).addClass('remove-bookmark');
+                    $(this).attr('id', ('remove-bookmark-' + bookmarkThis));
+                    $(this).html('<i class="fa fa-lg fa-bookmark" aria-hidden="false"></i>')
+                    $('#num-bookmarked').html('<p id="num-bookmarked">You have <strong>' + savedRecords.length + '</strong> records bookmarked.</p>');
+                } else {
+                    var unbookmarkThis = $(this).attr('id').replace('remove-bookmark-', '');
+                    var unbookmarkIndex = savedRecords.indexOf(unbookmarkThis);
+                    if (unbookmarkIndex > -1) {
+                        savedRecords.splice(unbookmarkIndex, 1);
+                    }
+                    $(this).removeClass('remove-bookmark');
+                    $(this).addClass('add-bookmark');
+                    $(this).attr('id', ('add-bookmark-' + unbookmarkThis));
+                    $(this).html('<i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i>')
+                    $('#num-bookmarked').html('<p id="num-bookmarked">You have <strong>' + savedRecords.length + '</strong> records bookmarked.</p>');
+                }
+                
+            });
+
+            
+            /////////////////////////////////////////////////
             // click on info icon, get modal with attrs    //
             /////////////////////////////////////////////////
 
-                $('.attr-modal-link').on('click', function(){
-                    
-                    // what record are we currently looking at? use the assigned id to figure it out
-                    var featureToLookup = ($(this).attr('id')).replace('info-', '');
-                    
-                    // get the properties for the record
-                    var geodexAttrQuery = L.esri.query({
-                        url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
-                    });
-                    geodexAttrQuery
-                        .where('"OBJECTID" = '+ featureToLookup);
-                        
-                    geodexAttrQuery.run(function(error, featureWeFound, response){
-                        
-                        var attr = featureWeFound.features[0].properties;
-                        var attrKeys = Object.keys(attr);
-                        
-                        // and now it's time to populate our modal with the attributes!
-                        $('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD);
-                        
-                        // procedurally generate the table, because we're lazy and doing it manually sounds boring
-                        for (b = 0; b < attrKeys.length; b++) {
-                            // grab the current attribute
-                            var currentAttribute = attrKeys[b];
-                            // grab the current value for the current attribute
-                            var currentValue = attr[currentAttribute];
-                            // throw them both in an html string
-                            var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
-                            
-                            if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
-                                $('#attr-table-1>tbody').append(tableRowHtml);
-                            } else  { // throw the rest in table #2
-                                $('#attr-table-2>tbody').append(tableRowHtml);
-                            }
-                        }
-                    
-                    });
-                    
+            $('.attr-modal-link').on('click', function(){
+                
+                // what record are we currently looking at? use the assigned id to figure it out
+                var featureToLookup = ($(this).attr('id')).replace('info-', '');
+                
+                // get the properties for the record
+                var geodexAttrQuery = L.esri.query({
+                    url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
                 });
+                geodexAttrQuery
+                    .where('"OBJECTID" = '+ featureToLookup);
+                    
+                geodexAttrQuery.run(function(error, featureWeFound, response){
+                    
+                    var attr = featureWeFound.features[0].properties;
+                    var attrKeys = Object.keys(attr);
+                    
+                    // and now it's time to populate our modal with the attributes!
+                    $('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD);
+                    
+                    // procedurally generate the table, because we're lazy and doing it manually sounds boring
+                    for (b = 0; b < attrKeys.length; b++) {
+                        // grab the current attribute
+                        var currentAttribute = attrKeys[b];
+                        // grab the current value for the current attribute
+                        var currentValue = attr[currentAttribute];
+                        // throw them both in an html string
+                        var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
+                        
+                        if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
+                            $('#attr-table-1>tbody').append(tableRowHtml);
+                        } else  { // throw the rest in table #2
+                            $('#attr-table-2>tbody').append(tableRowHtml);
+                        }
+                    }
+                
+                });
+                
+            });
         }
         
         
