@@ -219,7 +219,6 @@ $(document).ready(function(){
                 };
                 removeAllOutlines();
                 var featureId = $(this).attr('id').replace('show-outline-', '');
-                console.log(featureId);
                 var geodexBoundsQuery = L.esri.query({
                     url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
                 });
