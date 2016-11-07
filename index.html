@@ -68,7 +68,7 @@
             <div class="row" id="map-row">
                 <section class="col-md-3" id="search-column">
                     <h1>AGSL Geodex Web Map</h1>
-                    <p id="num-bookmarked">You have <strong>0</strong> records bookmarked.</p>
+                        <!--<span id="num-bookmarked">0</span>-->
                     <form>
                         <h2>Extent Search Type</h2>
                         <div class="radio">
@@ -92,6 +92,10 @@
                         <h2>Years</h2>
                         <div class="form-group">
                             <select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
+                        </div>
+                        <h2>Series</h2>
+                        <div class="form-group">
+                            <select name="series-list" id="series-list" value="series-list"></select>
                         </div>
                         <button id="search-current-extent" type="button" class="btn btn-primary" disabled="disabled">Search Geodex</button>
                     </form>

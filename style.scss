@@ -47,7 +47,7 @@ h2 {
     
     .bookmark-link{
         float: right;
-        color: darken(#5cb85c, 12%);
+        color: #888;
     }
     
 }
@@ -64,4 +64,16 @@ tbody {
 
 .list-group-item:hover{
     background-color: #f5f5f5;
+}
+
+.btn-group-justified .btn{
+    font-size: 0.9em;
+}
+
+.btn-group-justified i{
+    margin: 0.25em 0 0.5em;
+}
+
+#series-list{
+    max-width: 100%;
 }

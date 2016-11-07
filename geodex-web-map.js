@@ -1,23 +1,73 @@
 var savedRecords = []; // this array will store any records the user has chosen to "bookmark"
+var mapService = 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'; // the url for our map service; will be referenced in a lot of places
 
 // when document is ready...
 $(document).ready(function(){
     makeTheMap(); //... render the map
     
-    // populate the "years" drown-down inputs automatically
+    /////////////////////////////////////////////////
+    // populate "years" drown-down automatically   //
+    /////////////////////////////////////////////////
     
-    /*
-        EDIT THE FOLLOWING LINE IF A MAP IS ADDED TO GEODEX WITH AN EARLIER YEAR!
-    */
-    var minYear = 1829; // <--- THIS ONE
-    var currentYear = new Date().getFullYear();
-    var dropdownYearsList;
-    for (y = minYear; y <= currentYear; y++){
-        dropdownYearsList += ('<option value="' + y + '" id="' + y +'">' + y + '</option>');
-    }
-    $('#years-from').html(dropdownYearsList);
-    $('#years-to').html(dropdownYearsList);
-    $('#years-to #' + currentYear).attr('selected', 'selected');
+        /*
+            EDIT THE FOLLOWING LINE IF A MAP IS ADDED TO GEODEX WITH AN EARLIER YEAR!
+        */
+        var minYear = 1829; // <--- THIS ONE
+        var currentYear = new Date().getFullYear();
+        var dropdownYearsList;
+        for (y = minYear; y <= currentYear; y++){
+            dropdownYearsList += ('<option value="' + y + '" id="' + y +'">' + y + '</option>');
+        }
+        $('#years-from').html(dropdownYearsList);
+        $('#years-to').html(dropdownYearsList);
+        $('#years-to #' + currentYear).attr('selected', 'selected');
+        
+    /////////////////////////////////////////////////
+    // populate "series" drown-down automatically  //
+    /////////////////////////////////////////////////
+
+        // this array will hold all of the unique SERIES_TIT values
+        var uniqueSeriesArray = [];
+        
+        // the number of characters to display in the series dropdown before cutting off
+        var maximumSeriesLength = 65;
+    
+        // get all unique series names... for more explanation: https://github.com/Esri/esri-leaflet/issues/880
+        var uniqueSeriesValuesQuery = L.esri.query({
+            url: mapService
+        });
+        uniqueSeriesValuesQuery.where('1=1');
+        uniqueSeriesValuesQuery.returnGeometry(false);
+        uniqueSeriesValuesQuery.fields(['SERIES_TIT']);
+        uniqueSeriesValuesQuery.params.returnDistinctValues = true;
+        
+        // add all unique SERIES_TIT attributes to uniqueSeriesArray
+        uniqueSeriesValuesQuery.run(function (err, res, raw) {
+            for (f = 0; f < res.features.length; f++){
+                var currentSeries = (res.features[f].properties.SERIES_TIT);
+                uniqueSeriesArray.push(currentSeries);
+                if (f === (res.features.length - 1)){
+                    // alphabetize the array once all SERIES_TIT values are included
+                    uniqueSeriesArray.sort();
+                    createSeriesHtml(uniqueSeriesArray);
+                }
+            }
+        });
+        
+        function createSeriesHtml(arr) {
+            var seriesHtml = '<option value="series-none" id="series-none">No series selected</option>';
+            for (b = 0; b < uniqueSeriesArray.length; b++){
+                if (uniqueSeriesArray[b] !== null){
+                    if (uniqueSeriesArray[b].length >= maximumSeriesLength) {
+                        seriesHtml += ('<option value="series-' + b + '" id="series-' + b +'">' + (uniqueSeriesArray[b]).substring(0, maximumSeriesLength) + '...</option>');
+                    } else {
+                        seriesHtml += ('<option value="series-' + b + '" id="series-' + b +'">' + uniqueSeriesArray[b] + '</option>');
+                    }
+                }
+            }
+            $('#series-list').html(seriesHtml);
+        }
+
 });
 
 /////////////////////////////////////////////////
@@ -111,7 +161,7 @@ $(document).ready(function(){
             var sqlQuery = makesqlQuery();
             
             var geodexSearchQuery = L.esri.query({
-                url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
+                url: mapService
             });
             
             if ($('#search-intersect').prop("checked")) {
@@ -220,7 +270,7 @@ $(document).ready(function(){
                 removeAllOutlines();
                 var featureId = $(this).attr('id').replace('show-outline-', '');
                 var geodexBoundsQuery = L.esri.query({
-                    url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
+                    url: mapService
                 });
                 geodexBoundsQuery
                     .where('"OBJECTID" = '+ featureId);
@@ -272,7 +322,7 @@ $(document).ready(function(){
                     $(this).addClass('remove-bookmark');
                     $(this).attr('id', ('remove-bookmark-' + bookmarkThis));
                     $(this).html('<i class="fa fa-lg fa-bookmark" aria-hidden="false"></i>')
-                    $('#num-bookmarked').html('<p id="num-bookmarked">You have <strong>' + savedRecords.length + '</strong> records bookmarked.</p>');
+                    $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
                 } else {
                     var unbookmarkThis = $(this).attr('id').replace('remove-bookmark-', '');
                     var unbookmarkIndex = savedRecords.indexOf(unbookmarkThis);
@@ -283,7 +333,7 @@ $(document).ready(function(){
                     $(this).addClass('add-bookmark');
                     $(this).attr('id', ('add-bookmark-' + unbookmarkThis));
                     $(this).html('<i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i>')
-                    $('#num-bookmarked').html('<p id="num-bookmarked">You have <strong>' + savedRecords.length + '</strong> records bookmarked.</p>');
+                    $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
                 }
                 
             });
@@ -300,7 +350,7 @@ $(document).ready(function(){
                 
                 // get the properties for the record
                 var geodexAttrQuery = L.esri.query({
-                    url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'
+                    url: mapService
                 });
                 geodexAttrQuery
                     .where('"OBJECTID" = '+ featureToLookup);
