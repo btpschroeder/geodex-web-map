@@ -23,6 +23,19 @@ $(document).ready(function(){
         $('#years-to').html(dropdownYearsList);
         $('#years-to #' + currentYear).attr('selected', 'selected');
         
+        // Give users an alert message if their chosen year range is invaild
+        $('#years-from').change(function(){ validateYears(); });
+        $('#years-to').change(function(){ validateYears(); });
+        function validateYears() {
+            var x = $('#years-from').val();
+            var y = $('#years-to').val();
+            if (x > y){
+                $('#years-not-in-order').css('display', 'block');
+            } else {
+                $('#years-not-in-order').css('display', 'none');
+            }
+        }
+        
     /////////////////////////////////////////////////
     // populate "series" drown-down automatically  //
     /////////////////////////////////////////////////
