@@ -1,4 +1,5 @@
 var savedRecords = []; // this array will store any records the user has chosen to "bookmark"
+var searchTheseSeries = []; // this array will store the series that the user wishes to search
 var mapService = 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'; // the url for our map service; will be referenced in a lot of places
 
 // when document is ready...
@@ -59,14 +60,20 @@ $(document).ready(function(){
             for (b = 0; b < uniqueSeriesArray.length; b++){
                 if (uniqueSeriesArray[b] !== null){
                     if (uniqueSeriesArray[b].length >= maximumSeriesLength) {
-                        seriesHtml += ('<option value="series-' + b + '" id="series-' + b +'">' + (uniqueSeriesArray[b]).substring(0, maximumSeriesLength) + '...</option>');
+                        seriesHtml += ('<option value="' + b + '" id="series-' + b +'">' + (uniqueSeriesArray[b]).substring(0, maximumSeriesLength) + '...</option>');
                     } else {
-                        seriesHtml += ('<option value="series-' + b + '" id="series-' + b +'">' + uniqueSeriesArray[b] + '</option>');
+                        seriesHtml += ('<option value="' + b + '" id="series-' + b +'">' + uniqueSeriesArray[b] + '</option>');
                     }
                 }
             }
             $('#series-list').html(seriesHtml);
         }
+        
+        // when the user selects a new series for the query...
+        $('#series-list').on('change', function(){
+            var currentIndex = $(this).val();
+            searchTheseSeries = uniqueSeriesArray[currentIndex];
+        });
 
 });
 
@@ -138,171 +145,174 @@ $(document).ready(function(){
         // "search current extent" button on the left  //
         /////////////////////////////////////////////////
          
-        theMap.on('zoomend', function(){ // whenever the map is zoomed in or out...
-            var currentZoom = theMap.getZoom(); // ...store the current zoom level in a variable
-            if(currentZoom >= minExtentZoom) { // if the current zoom level is the minimum zoom variable declared above, or higher, enable the "search current extent" button
-                $('#search-current-extent').prop('disabled', '');
-            } else { // otherwise, disable it
-                $('#search-current-extent').prop('disabled', 'disabled');
-            }
-        });
+            theMap.on('zoomend', function(){ // whenever the map is zoomed in or out...
+                var currentZoom = theMap.getZoom(); // ...store the current zoom level in a variable
+                if(currentZoom >= minExtentZoom) { // if the current zoom level is the minimum zoom variable declared above, or higher, enable the "search current extent" button
+                    $('#search-current-extent').prop('disabled', '');
+                } else { // otherwise, disable it
+                    $('#search-current-extent').prop('disabled', 'disabled');
+                }
+            });
         
         /////////////////////////////////////////////////
         // search current extent                       //
         /////////////////////////////////////////////////
         
-        $('#search-current-extent').on('click', function(){ // when the user clicks the "search current extent" button...
-            var currentMapBounds = theMap.getBounds(); // ...get the boundaries of the current map extent...
-            var currentMapCenter = theMap.getBounds().getCenter(); // ...and get the center of the current map extent
-            var sw = currentMapBounds._southWest; // assign the southwest boundary to a variable
-            var ne = currentMapBounds._northEast; // assign the northeast boundary to a variable
-            var queryBounds = L.latLngBounds(sw, ne); // combine the boundaries into a leaflet latlong object
-            
-            var sqlQuery = makesqlQuery();
-            
-            var geodexSearchQuery = L.esri.query({
-                url: mapService
+            $('#search-current-extent').on('click', function(){ // when the user clicks the "search current extent" button...
+                var currentMapBounds = theMap.getBounds(); // ...get the boundaries of the current map extent...
+                var currentMapCenter = theMap.getBounds().getCenter(); // ...and get the center of the current map extent
+                var sw = currentMapBounds._southWest; // assign the southwest boundary to a variable
+                var ne = currentMapBounds._northEast; // assign the northeast boundary to a variable
+                var queryBounds = L.latLngBounds(sw, ne); // combine the boundaries into a leaflet latlong object
+                
+                var sqlQuery = makesqlQuery();
+                
+                var geodexSearchQuery = L.esri.query({
+                    url: mapService
+                });
+                
+                if ($('#search-intersect').prop("checked")) {
+                    geodexSearchQuery.intersects(queryBounds)
+                    .where(sqlQuery);
+                } else if ($('#search-within').prop("checked")){
+                    geodexSearchQuery.within(queryBounds)
+                    .where(sqlQuery);
+                } else if ($('#search-center').prop("checked")){
+                    geodexSearchQuery.intersects(currentMapCenter)
+                    .where(sqlQuery);
+                }
+                
+                geodexSearchQuery.run(function(error, featureCollection, response){
+                    // pass all of the query results to the displaySearchResults function
+                    if (error) {
+                        console.log(error);
+                    }
+                    displaySearchResults(featureCollection.features);
+                });
             });
-            
-            if ($('#search-intersect').prop("checked")) {
-                geodexSearchQuery.intersects(queryBounds)
-                .where(sqlQuery);
-            } else if ($('#search-within').prop("checked")){
-                geodexSearchQuery.within(queryBounds)
-                .where(sqlQuery);
-            } else if ($('#search-center').prop("checked")){
-                geodexSearchQuery.intersects(currentMapCenter)
-                .where(sqlQuery);
-            }
-            
-            geodexSearchQuery.run(function(error, featureCollection, response){
-                // pass all of the query results to the displaySearchResults function
-                displaySearchResults(featureCollection.features);
-            });
-        });
         
         /////////////////////////////////////////////////
         // display search results                      //
         /////////////////////////////////////////////////
 
-        function displaySearchResults(s) { // in this function, the s parameter refers to search results passed in
-        
-            function showTheResults(s) {}
-                
-            var temporaryLayer;
-            var alertHtml;
+            function displaySearchResults(s) { // in this function, the s parameter refers to search results passed in
             
-            if (s.length === 1000) {
-                alertHtml = '<div class="alert alert-danger" role="alert"><strong>Your search returned too many results. Only the first 1000 will be displayed below.</strong> Adjust your search parameters to return more specific records.</div>';
-            } else if (s.length > 100 && s.length < 1000) {
-                alertHtml = '<div class="alert alert-warning" role="alert"><strong>Your search returned more than 100 results.</strong> All of them are displayed below. You may wish to adjust your search parameters to return more specific records.</div>';
-            } else {
-                alertHtml = '';
-            }
-
-            var resultsHtml = // all of the output html will be stored in this variable
-                '<h2>Seach Results</h2>' +
-                '<p><button type="button" class="btn btn-default" id="clear-results">Clear search results</button>' +
-                alertHtml + // were any alerts called above?
-                '<p>' +
-                'Found <strong>' + s.length + '</strong> results in ';
+                function showTheResults(s) {}
+                    
+                var temporaryLayer;
+                var alertHtml;
                 
-            var seriesArray = []; // this will allow the application to group search results by map series
-                
-            for (i = 0; i < s.length; i++) { // loop through every search result and create an array containing all series names
-                if (seriesArray.indexOf(s[i].properties.SERIES_TIT) < 0) {
-                    seriesArray.push(s[i].properties.SERIES_TIT); // if series is not already in array, add it
+                if (s.length === 1000) {
+                    alertHtml = '<div class="alert alert-danger" role="alert"><strong>Your search returned too many results. Only the first 1000 will be displayed below.</strong> Adjust your search parameters to return more specific records.</div>';
+                } else if (s.length > 100 && s.length < 1000) {
+                    alertHtml = '<div class="alert alert-warning" role="alert"><strong>Your search returned more than 100 results.</strong> All of them are displayed below. You may wish to adjust your search parameters to return more specific records.</div>';
+                } else {
+                    alertHtml = '';
                 }
-            }
-            
-            if ( seriesArray.indexOf(null) >= 0 ) { // if a null value shows up in series list, call it something more descriptive
-                var index = seriesArray.indexOf(null);
-                seriesArray[index] = "No associated series";
-            }
-            
-            resultsHtml += ('<strong>' + seriesArray.length + '</strong> series.</p>')
-            
-            for (j = 0; j < seriesArray.length; j++) { // create headings and lists for each category in the search results
-                resultsHtml += (
-                    '<h3>' + seriesArray[j] + '</h3>'
-                    + '<ul class="list-group">'
-                    + makeCategorizedList(seriesArray[j])
-                    + '</ul>'
-                )
-            }
-            
-            function makeCategorizedList(cat) { // create individual <li>s for each <ul> created in the for loop above
-                var listToReturn = '';
-                for (h = 0; h < s.length; h++) {
-                    if (cat === s[h].properties.SERIES_TIT) {
-                        listToReturn += (
-                            '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
-                        )
-                    } else if (cat === "No associated series" && s[h].properties.SERIES_TIT === null) { // need this to deal with series containing a null value
-                        listToReturn += (
-                           '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
-                        )
+
+                var resultsHtml = // all of the output html will be stored in this variable
+                    '<h2>Seach Results</h2>' +
+                    '<p><button type="button" class="btn btn-default" id="clear-results">Clear search results</button>' +
+                    alertHtml + // were any alerts called above?
+                    '<p>' +
+                    'Found <strong>' + s.length + '</strong> results in ';
+                    
+                var seriesArray = []; // this will allow the application to group search results by map series
+                    
+                for (i = 0; i < s.length; i++) { // loop through every search result and create an array containing all series names
+                    if (seriesArray.indexOf(s[i].properties.SERIES_TIT) < 0) {
+                        seriesArray.push(s[i].properties.SERIES_TIT); // if series is not already in array, add it
                     }
                 }
-                return listToReturn;
-            }
-            
-            $('#search-results').html( // once everything else is done, change the "search-results" div's html to match that of the resultsHtml variable
-                resultsHtml
-            );
-            
-            // click "clear search results" to empty search results entirely
-            $('#clear-results').on('click', function(){
-                removeAllOutlines();
-                $('#search-results').empty();
-            });
+                
+                if ( seriesArray.indexOf(null) >= 0 ) { // if a null value shows up in series list, call it something more descriptive
+                    var index = seriesArray.indexOf(null);
+                    seriesArray[index] = "No associated series";
+                }
+                
+                resultsHtml += ('<strong>' + seriesArray.length + '</strong> series.</p>')
+                
+                for (j = 0; j < seriesArray.length; j++) { // create headings and lists for each category in the search results
+                    resultsHtml += (
+                        '<h3>' + seriesArray[j] + '</h3>'
+                        + '<ul class="list-group">'
+                        + makeCategorizedList(seriesArray[j])
+                        + '</ul>'
+                    )
+                }
+                
+                function makeCategorizedList(cat) { // create individual <li>s for each <ul> created in the for loop above
+                    var listToReturn = '';
+                    for (h = 0; h < s.length; h++) {
+                        if (cat === s[h].properties.SERIES_TIT) {
+                            listToReturn += (
+                                '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
+                            )
+                        } else if (cat === "No associated series" && s[h].properties.SERIES_TIT === null) { // need this to deal with series containing a null value
+                            listToReturn += (
+                               '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
+                            )
+                        }
+                    }
+                    return listToReturn;
+                }
+                
+                $('#search-results').html( // once everything else is done, change the "search-results" div's html to match that of the resultsHtml variable
+                    resultsHtml
+                );
+                
+                // click "clear search results" to empty search results entirely
+                $('#clear-results').on('click', function(){
+                    removeAllOutlines();
+                    $('#search-results').empty();
+                });
             
             /////////////////////////////////////////////////
             // show feature boundary link                  //
             /////////////////////////////////////////////////
             
-            $('.show-map-outline-link').on('click', function(){
-                // grab the current zoom level and bounds right away -- to be used with the return to previous extent link
-                var rememberLastExtent = {
-                    zoom: theMap.getZoom(),
-                    bounds: theMap.getBounds()
-                };
-                removeAllOutlines();
-                var featureId = $(this).attr('id').replace('show-outline-', '');
-                var geodexBoundsQuery = L.esri.query({
-                    url: mapService
-                });
-                geodexBoundsQuery
-                    .where('"OBJECTID" = '+ featureId);
-                geodexBoundsQuery.run(function(error, featureToDisplay, response){
-                    var thisFeaturesGeometry = featureToDisplay.features[0].geometry.coordinates[0];
-                    for (i = 0; i < thisFeaturesGeometry.length; i++) {
-                        thisFeaturesGeometry[i].reverse();
-                    }
-                temporaryLayer = L.polygon(thisFeaturesGeometry, {color: 'red'});
-                // check to see if outlined feature is in current map extent; pan to it if not
-                var currentExtent = theMap.getBounds();
-                var containTest = currentExtent.intersects(thisFeaturesGeometry); // returns true if outline is in current extent, false if not
-                if(containTest === false) {
-                    var panToHere = temporaryLayer.getBounds().getCenter(); // if necessary, pan to the center of the outline
-                    theMap.panTo(panToHere, {
-                        animate: true
+                $('.show-map-outline-link').on('click', function(){
+                    // grab the current zoom level and bounds right away -- to be used with the return to previous extent link
+                    var rememberLastExtent = {
+                        zoom: theMap.getZoom(),
+                        bounds: theMap.getBounds()
+                    };
+                    removeAllOutlines();
+                    var featureId = $(this).attr('id').replace('show-outline-', '');
+                    var geodexBoundsQuery = L.esri.query({
+                        url: mapService
                     });
-                }
-                temporaryLayerGroup = L.layerGroup([temporaryLayer]);
-                temporaryLayerGroup.addTo(theMap);
-                outlineOnMap = true;
-                });
+                    geodexBoundsQuery
+                        .where('"OBJECTID" = '+ featureId);
+                    geodexBoundsQuery.run(function(error, featureToDisplay, response){
+                        var thisFeaturesGeometry = featureToDisplay.features[0].geometry.coordinates[0];
+                        for (i = 0; i < thisFeaturesGeometry.length; i++) {
+                            thisFeaturesGeometry[i].reverse();
+                        }
+                    temporaryLayer = L.polygon(thisFeaturesGeometry, {color: 'red'});
+                    // check to see if outlined feature is in current map extent; pan to it if not
+                    var currentExtent = theMap.getBounds();
+                    var containTest = currentExtent.intersects(thisFeaturesGeometry); // returns true if outline is in current extent, false if not
+                    if(containTest === false) {
+                        var panToHere = temporaryLayer.getBounds().getCenter(); // if necessary, pan to the center of the outline
+                        theMap.panTo(panToHere, {
+                            animate: true
+                        });
+                    }
+                    temporaryLayerGroup = L.layerGroup([temporaryLayer]);
+                    temporaryLayerGroup.addTo(theMap);
+                    outlineOnMap = true;
+                    });
                 
                 /////////////////////////////////////////////////
                 // return to previous extent                   //
                 /////////////////////////////////////////////////
                 
-                $('.previous-extent').on('click', function(){
-                    theMap.panTo(rememberLastExtent.bounds);
-                    theMap.zoomTo(rememberLastExtent.zoom);
-                    $(this).remove();
-                });
+                    $('.previous-extent').on('click', function(){
+                        theMap.panTo(rememberLastExtent.bounds);
+                        theMap.zoomTo(rememberLastExtent.zoom);
+                        $(this).remove();
+                    });
                 
             });
             
@@ -310,78 +320,78 @@ $(document).ready(function(){
             // click on bookmark icon                      //
             /////////////////////////////////////////////////
             
-            $('.bookmark-link').on('click', function(){
-                
-                // use the link's class to determine whether or not this is an "add" or "remove" bookmark link
-                var thisIsAddLink = $(this).hasClass('add-bookmark');
-                
-                if(thisIsAddLink) {
-                    var bookmarkThis = $(this).attr('id').replace('add-bookmark-', '');
-                    savedRecords.push(bookmarkThis);
-                    $(this).removeClass('add-bookmark');
-                    $(this).addClass('remove-bookmark');
-                    $(this).attr('id', ('remove-bookmark-' + bookmarkThis));
-                    $(this).html('<i class="fa fa-lg fa-bookmark" aria-hidden="false"></i>')
-                    $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
-                } else {
-                    var unbookmarkThis = $(this).attr('id').replace('remove-bookmark-', '');
-                    var unbookmarkIndex = savedRecords.indexOf(unbookmarkThis);
-                    if (unbookmarkIndex > -1) {
-                        savedRecords.splice(unbookmarkIndex, 1);
+                $('.bookmark-link').on('click', function(){
+                    
+                    // use the link's class to determine whether or not this is an "add" or "remove" bookmark link
+                    var thisIsAddLink = $(this).hasClass('add-bookmark');
+                    
+                    if(thisIsAddLink) {
+                        var bookmarkThis = $(this).attr('id').replace('add-bookmark-', '');
+                        savedRecords.push(bookmarkThis);
+                        $(this).removeClass('add-bookmark');
+                        $(this).addClass('remove-bookmark');
+                        $(this).attr('id', ('remove-bookmark-' + bookmarkThis));
+                        $(this).html('<i class="fa fa-lg fa-bookmark" aria-hidden="false"></i>')
+                        $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
+                    } else {
+                        var unbookmarkThis = $(this).attr('id').replace('remove-bookmark-', '');
+                        var unbookmarkIndex = savedRecords.indexOf(unbookmarkThis);
+                        if (unbookmarkIndex > -1) {
+                            savedRecords.splice(unbookmarkIndex, 1);
+                        }
+                        $(this).removeClass('remove-bookmark');
+                        $(this).addClass('add-bookmark');
+                        $(this).attr('id', ('add-bookmark-' + unbookmarkThis));
+                        $(this).html('<i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i>')
+                        $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
                     }
-                    $(this).removeClass('remove-bookmark');
-                    $(this).addClass('add-bookmark');
-                    $(this).attr('id', ('add-bookmark-' + unbookmarkThis));
-                    $(this).html('<i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i>')
-                    $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
-                }
-                
-            });
+                    
+                });
 
             
             /////////////////////////////////////////////////
             // click on info icon, get modal with attrs    //
             /////////////////////////////////////////////////
 
-            $('.attr-modal-link').on('click', function(){
-                
-                // what record are we currently looking at? use the assigned id to figure it out
-                var featureToLookup = ($(this).attr('id')).replace('info-', '');
-                
-                // get the properties for the record
-                var geodexAttrQuery = L.esri.query({
-                    url: mapService
-                });
-                geodexAttrQuery
-                    .where('"OBJECTID" = '+ featureToLookup);
+                $('.attr-modal-link').on('click', function(){
                     
-                geodexAttrQuery.run(function(error, featureWeFound, response){
+                    // what record are we currently looking at? use the assigned id to figure it out
+                    var featureToLookup = ($(this).attr('id')).replace('info-', '');
                     
-                    var attr = featureWeFound.features[0].properties;
-                    var attrKeys = Object.keys(attr);
-                    
-                    // and now it's time to populate our modal with the attributes!
-                    $('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD);
-                    
-                    // procedurally generate the table, because we're lazy and doing it manually sounds boring
-                    for (b = 0; b < attrKeys.length; b++) {
-                        // grab the current attribute
-                        var currentAttribute = attrKeys[b];
-                        // grab the current value for the current attribute
-                        var currentValue = attr[currentAttribute];
-                        // throw them both in an html string
-                        var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
+                    // get the properties for the record
+                    var geodexAttrQuery = L.esri.query({
+                        url: mapService
+                    });
+                    geodexAttrQuery
+                        .where('"OBJECTID" = '+ featureToLookup);
                         
-                        if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
-                            $('#attr-table-1>tbody').append(tableRowHtml);
-                        } else  { // throw the rest in table #2
-                            $('#attr-table-2>tbody').append(tableRowHtml);
+                    geodexAttrQuery.run(function(error, featureWeFound, response){
+                        
+                        var attr = featureWeFound.features[0].properties;
+                        var attrKeys = Object.keys(attr);
+                        
+                        // and now it's time to populate our modal with the attributes!
+                        $('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD);
+                        
+                        // procedurally generate the table, because we're lazy and doing it manually sounds boring
+                        for (b = 0; b < attrKeys.length; b++) {
+                            // grab the current attribute
+                            var currentAttribute = attrKeys[b];
+                            // grab the current value for the current attribute
+                            var currentValue = attr[currentAttribute];
+                            // throw them both in an html string
+                            var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
+                            
+                            if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
+                                $('#attr-table-1>tbody').append(tableRowHtml);
+                            } else  { // throw the rest in table #2
+                                $('#attr-table-2>tbody').append(tableRowHtml);
+                            }
                         }
-                    }
-                
+                    
+                    });
+                    
                 });
-                
-            });
         }
         
         
@@ -389,12 +399,12 @@ $(document).ready(function(){
         // remove feature outline on map               //
         /////////////////////////////////////////////////
         
-        function removeAllOutlines() {
-            if(outlineOnMap) {
-                temporaryLayerGroup.remove();
-                outlineOnMap = false;
+            function removeAllOutlines() {
+                if(outlineOnMap) {
+                    temporaryLayerGroup.remove();
+                    outlineOnMap = false;
+                }
             }
-        }
         
     }
     
@@ -422,6 +432,12 @@ $(document).ready(function(){
         var fromThisYear = $('#years-from').val();
         var toThisYear = $('#years-to').val();
         query += ('DATE >= ' + fromThisYear + ' AND DATE <= ' + toThisYear);
+        
+        // then see if user as selected any series
+        if (searchTheseSeries.length > 0){
+            var charsStripped = searchTheseSeries.replace("'", "''");
+            query += (" AND SERIES_TIT = '" + charsStripped + "'");
+        }
 
         // and finally...
         return query;
