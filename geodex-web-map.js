@@ -21,7 +21,8 @@ $(document).ready(function(){
         }
         $('#years-from').html(dropdownYearsList);
         $('#years-to').html(dropdownYearsList);
-        $('#years-to #' + currentYear).attr('selected', 'selected');
+        $('#years-to #' + currentYear).prop('selected', true);
+        
         
         // Give users an alert message if their chosen year range is invaild
         $('#years-from').change(function(){ validateYears(); });
@@ -35,6 +36,13 @@ $(document).ready(function(){
                 $('#years-not-in-order').css('display', 'none');
             }
         }
+        
+        // Function to reset years to default
+        $('#reset-years').on('click', function(){
+            $('#years-from option:first').prop('selected', true);
+            $('#years-to option:last').prop('selected', true);
+            $('#years-not-in-order').css('display', 'none');
+        });
         
     /////////////////////////////////////////////////
     // populate "series" drown-down automatically  //
