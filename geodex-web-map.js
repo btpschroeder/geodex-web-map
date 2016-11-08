@@ -31,17 +31,17 @@ $(document).ready(function(){
             var x = $('#years-from').val();
             var y = $('#years-to').val();
             if (x > y){
-                $('#years-not-in-order').css('display', 'block');
+                $('#years-not-in-order').show();
             } else {
-                $('#years-not-in-order').css('display', 'none');
+                $('#years-not-in-order').hide();
             }
         }
         
-        // Function to reset years to default
+        // Reset years to default
         $('#reset-years').on('click', function(){
             $('#years-from option:first').prop('selected', true);
             $('#years-to option:last').prop('selected', true);
-            $('#years-not-in-order').css('display', 'none');
+            $('#years-not-in-order').hide();
         });
         
     /////////////////////////////////////////////////
@@ -88,14 +88,30 @@ $(document).ready(function(){
                 }
             }
             $('#series-list').html(seriesHtml);
+            $('#series-list').on('click', function(){
+                $('#series-list option:first').prop('disabled', true);
+            });
         }
         
         // when the user selects a new series for the query...
         $('#series-list').on('change', function(){
             var currentIndex = $(this).val();
-            searchTheseSeries = uniqueSeriesArray[currentIndex];
+            // if the series is not in the array already, add it to the list of series to search
+            if (($.inArray(uniqueSeriesArray[currentIndex], searchTheseSeries)) === -1){
+                searchTheseSeries.push(uniqueSeriesArray[currentIndex]);
+                $('#series-to-be-searched').append('<span class="series-span" id="uniqueseries-' + currentIndex + '">' + uniqueSeriesArray[currentIndex] + ' <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button></span>');
+            }
+            // when user clicks "x" next to series name, remove it from the array
+            $('.series-span .close').off();
+            $('.series-span .close').on('click', function(){
+                var parentElement = $(this).parent();
+                var seriesToRemoveIndex = $(parentElement).attr('id').replace('uniqueseries-', '');
+                var seriesToRemove = uniqueSeriesArray[seriesToRemoveIndex];
+                var searchSeriesIndex = searchTheseSeries.indexOf(seriesToRemove);
+                searchTheseSeries.splice(searchSeriesIndex, 1);
+                $(parentElement).remove();
+            });
         });
-
 });
 
 /////////////////////////////////////////////////
@@ -115,10 +131,10 @@ $(document).ready(function(){
             ]);
             
         // disable "search current extent" button by default
-        $('#search-current-extent').prop('disabled', 'disabled');
+        // $('#search-current-extent').prop('disabled', 'disabled');
             
         // this variable holds the minimum zoom level needed to activate "search current extent" button
-        var minExtentZoom = 8;
+        var minExtentZoom = 1;
             
         // add individual basemap layers
         var osmBasemap = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -456,11 +472,21 @@ $(document).ready(function(){
         
         // then see if user as selected any series
         if (searchTheseSeries.length > 0){
-            var charsStripped = searchTheseSeries.replace("'", "''");
-            query += (" AND SERIES_TIT = '" + charsStripped + "'");
+            // var charsStripped = searchTheseSeries.replace("'", "''");
+            query += ' AND ( ';
+            for (w = 0; w < searchTheseSeries.length; w++){
+                var charsStripped = searchTheseSeries[w].replace("'", "''");
+                query += ("SERIES_TIT = '" + charsStripped + "'")
+                if (w < (searchTheseSeries.length - 1)){
+                    query += ' OR ';
+                } else {
+                    query += ' )';
+                }
+            }
         }
 
         // and finally...
+        console.log(query);
         return query;
         
     }
