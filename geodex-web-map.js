@@ -208,15 +208,17 @@ $(document).ready(function(){
                     url: mapService
                 });
                 
-                if ($('#search-intersect').prop("checked")) {
+                if ($('#search-intersect').prop('checked')) {
                     geodexSearchQuery.intersects(queryBounds)
                     .where(sqlQuery);
-                } else if ($('#search-within').prop("checked")){
+                } else if ($('#search-within').prop('checked')){
                     geodexSearchQuery.within(queryBounds)
                     .where(sqlQuery);
-                } else if ($('#search-center').prop("checked")){
+                } else if ($('#search-center').prop('checked')){
                     geodexSearchQuery.intersects(currentMapCenter)
                     .where(sqlQuery);
+                } else if ($('#no-search-extent').prop('checked')){
+                    geodexSearchQuery.where(sqlQuery);
                 }
                 
                 geodexSearchQuery.run(function(error, featureCollection, response){
