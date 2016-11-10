@@ -73,27 +73,21 @@
                         <h2>Extent Search Type</h2>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
+                                <input class="extent-radio" type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
                                 Records <strong> entirely within</strong> the current extent
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
+                                <input class="extent-radio" type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
                                 Records <strong>intersecting</strong> the current extent
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="search-extent-options" id="search-center" value="search-center">
-                                Records <strong>containing the center of</strong> the current extent
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="search-extent-options" id="no-search-extent" value="no-search-extent">
+                                <input class="extent-radio" type="radio" name="search-extent-options" id="no-search-extent" value="no-search-extent">
                                 Search <strong>without using</strong> the current extent<br />
-                                <em>Search will only take options below into account.</em>
+                                <em>Search will only take the options below into account.</em>
                             </label>
                         </div>
                         <h2>Years</h2>
@@ -103,11 +97,17 @@
                         <div id="years-not-in-order" class="alert alert-danger" role="alert"><strong>This year range is invalid</strong> and will return no results. <a href="#" id="reset-years">Reset years</a></div>
                         <h2>Series</h2>
                         <div class="form-group">
-                            <p><em>If no series is selected, all of them will be searched.</em></p>
+                            <p><em>If no series is selected, all of them will be included when searching.</em></p>
                             <select name="series-list" id="series-list" value="series-list"></select>
                         </div>
                         <div id="series-to-be-searched"></div>
-                        <button id="search-current-extent" type="button" class="btn btn-primary">Search Geodex</button>
+                        <div class="checkbox" id="exclude-large-area-toggle">
+                            <label>
+                                <input type="checkbox" id="exclude-large-maps" value="exclude-large-maps">
+                                Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
+                            </label>
+                        </div>
+                        <button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
                     </form>
                     <div id="search-results"></div>
                 </section>

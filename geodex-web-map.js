@@ -6,6 +6,18 @@ var mapService = 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMa
 $(document).ready(function(){
     makeTheMap(); //... render the map
     
+    // hide "Exclude large maps..." option by default...
+    $('#exclude-large-area-toggle').hide();
+    // ...and show it when the user selects "intersects" method
+    $('.extent-radio').on('change', function(){
+        if ($('#search-intersect').prop('checked')){
+            $('#exclude-large-area-toggle').show();
+        } else {
+            $('#exclude-large-area-toggle').hide();
+            $('#exclude-large-maps').prop('checked', false);
+        }
+    });
+    
     /////////////////////////////////////////////////
     // populate "years" drown-down automatically   //
     /////////////////////////////////////////////////
@@ -123,15 +135,16 @@ $(document).ready(function(){
         
         // initialize the map
         var theMap = L.map('map') // draw the map in the element with an id of "map"
-            .setView([43.038902, -87.906474], // by default, center to Milwaukee...
-            6) // ...with a zoom level of 6
+            .setView([41.621602, -43.637695], // by default, center to area between Iberian Peninsula and Nova Scotia
+            4) // ...with a zoom level of 4
             .setMaxBounds([ // with this method, the map will "bounce" back once the user hits the map boundary
                 [-180, -180], // this is because esri-leaflet querying gets confused otherwise
                 [180, 180]
             ]);
             
-        // disable "search current extent" button by default
-        // $('#search-current-extent').prop('disabled', 'disabled');
+        // put current zoom level in "Exclude large maps relative to current zoom level" option
+        $('#current-zoom-level').html(theMap.getZoom());
+        
             
         // this variable holds the minimum zoom level needed to activate "search current extent" button
         var minExtentZoom = 1;
@@ -185,22 +198,23 @@ $(document).ready(function(){
             theMap.on('zoomend', function(){ // whenever the map is zoomed in or out...
                 var currentZoom = theMap.getZoom(); // ...store the current zoom level in a variable
                 if(currentZoom >= minExtentZoom) { // if the current zoom level is the minimum zoom variable declared above, or higher, enable the "search current extent" button
-                    $('#search-current-extent').prop('disabled', '');
+                    $('#search-geodex-button').prop('disabled', '');
                 } else { // otherwise, disable it
-                    $('#search-current-extent').prop('disabled', 'disabled');
+                    $('#search-geodex-button').prop('disabled', 'disabled');
                 }
+                $('#current-zoom-level').html(currentZoom);
             });
         
         /////////////////////////////////////////////////
         // search current extent                       //
         /////////////////////////////////////////////////
         
-            $('#search-current-extent').on('click', function(){ // when the user clicks the "search current extent" button...
-                var currentMapBounds = theMap.getBounds(); // ...get the boundaries of the current map extent...
-                var currentMapCenter = theMap.getBounds().getCenter(); // ...and get the center of the current map extent
-                var sw = currentMapBounds._southWest; // assign the southwest boundary to a variable
-                var ne = currentMapBounds._northEast; // assign the northeast boundary to a variable
-                var queryBounds = L.latLngBounds(sw, ne); // combine the boundaries into a leaflet latlong object
+            $('#search-geodex-button').on('click', function(){ // when the user clicks the "search current extent" button...
+            
+            var currentMapBounds = theMap.getBounds(); // ...get the boundaries of the current map extent...
+            var sw = currentMapBounds._southWest; // assign the southwest boundary to a variable
+            var ne = currentMapBounds._northEast; // assign the northeast boundary to a variable
+            var queryBounds = L.latLngBounds(sw, ne); // combine the boundaries into a leaflet latlong object
                 
                 var sqlQuery = makesqlQuery();
                 
@@ -214,18 +228,12 @@ $(document).ready(function(){
                 } else if ($('#search-within').prop('checked')){
                     geodexSearchQuery.within(queryBounds)
                     .where(sqlQuery);
-                } else if ($('#search-center').prop('checked')){
-                    geodexSearchQuery.intersects(currentMapCenter)
-                    .where(sqlQuery);
                 } else if ($('#no-search-extent').prop('checked')){
                     geodexSearchQuery.where(sqlQuery);
                 }
                 
                 geodexSearchQuery.run(function(error, featureCollection, response){
                     // pass all of the query results to the displaySearchResults function
-                    if (error) {
-                        console.log(error);
-                    }
                     displaySearchResults(featureCollection.features);
                 });
             });
@@ -283,13 +291,26 @@ $(document).ready(function(){
                 function makeCategorizedList(cat) { // create individual <li>s for each <ul> created in the for loop above
                     var listToReturn = '';
                     for (h = 0; h < s.length; h++) {
-                        if (cat === s[h].properties.SERIES_TIT) {
+                        
+                        var loc = s[h].properties.LOCATION;
+                        var date = s[h].properties.DATE;
+                        var rec = s[h].properties.RECORD;
+                        var oid = s[h].properties.OBJECTID;
+                        var ser = s[h].properties.SERIES_TIT;
+                        
+                        if (loc === null){
+                            loc = '';
+                        } else {
+                            loc = ': ' + loc;
+                        }
+                        
+                        if (cat === ser) {
                             listToReturn += (
-                                '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
+                                '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + oid +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
                             )
-                        } else if (cat === "No associated series" && s[h].properties.SERIES_TIT === null) { // need this to deal with series containing a null value
+                        } else if (cat === "No associated series" && ser === null) { // need this to deal with series containing a null value
                             listToReturn += (
-                               '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + s[h].properties.OBJECTID + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + s[h].properties.DATE + ' &ndash; ' + s[h].properties.RECORD + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + s[h].properties.OBJECTID +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
+                               '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + oid +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
                             )
                         }
                     }
@@ -331,13 +352,14 @@ $(document).ready(function(){
                     temporaryLayer = L.polygon(thisFeaturesGeometry, {color: 'red'});
                     // check to see if outlined feature is in current map extent; pan to it if not
                     var currentExtent = theMap.getBounds();
-                    var containTest = currentExtent.intersects(thisFeaturesGeometry); // returns true if outline is in current extent, false if not
+                    var containTest = currentExtent.contains(thisFeaturesGeometry); // returns true if outline is in current extent, false if not
                     if(containTest === false) {
                         var panToHere = temporaryLayer.getBounds().getCenter(); // if necessary, pan to the center of the outline
                         theMap.panTo(panToHere, {
                             animate: true
                         });
                     }
+                    
                     temporaryLayerGroup = L.layerGroup([temporaryLayer]);
                     temporaryLayerGroup.addTo(theMap);
                     outlineOnMap = true;
@@ -387,6 +409,184 @@ $(document).ready(function(){
                     
                 });
 
+            /////////////////////////////////////////////////
+            // attribute table vocabulary                  //
+            /////////////////////////////////////////////////
+            
+            // these domains are used in multiple attributes; might as well store them separately
+            var yearTypeDomain = {
+                "97" : "Approximate Date",
+                "98" : "Publication Date",
+                "99" : "Compilation Date",
+                "100" : "Base Map Date",
+                "102" : "Field Checked",
+                "103" : "Image Year",
+                "104" : "Photography to",
+                "105" : "Photo Inspected",
+                "106" : "Image Date",
+                "108" : "Preliminary Edition",
+                "109" : "Compiled From Map Dated",
+                "110" : "Interim Edition",
+                "112" : "Printed",
+                "113" : "Printed Circa",
+                "114" : "Revised",
+                "115" : "Situation/Survey",
+                "116" : "Transportation Network",
+                "118" : "Provisional Edition",
+                "120" : "Photo Revised",
+                "121" : "Edition of",
+                "119" : "Magnetic Declination Year"
+            };
+            
+            var subsDomain = {
+                "0": "Not assigned",
+                "1": "Global Coverage",
+                "2": "Regional Coverage",
+                "3": "Nautical, Aeronautical, and Lake Charts",
+                "4": "USGS Topographic Quads"
+            };
+            
+            /*
+            maintaining the structure of this is very important!
+                - each attribute that needs changing (or has values that need changing) is a key in the valuesVocab object
+                - the value for the key is one array that should not exceed two values
+                - the first value in the array is the new name for the attribute
+                - the second value is the array is an object containing definitions for individual values -- this is OPTIONAL
+                - attributes can be left out of this object entirely to maintain their default attribute names/value names
+            */
+            
+            var valuesVocab = {
+                "CATLOC" : ["Catalog Location"],
+                "DATE" : ["Date"],
+                "EDITION_NO" : ["Edition Number"],
+                "GDX_FILE" : ["GDX Series"],
+                "GDX_NUM" : ["GDX File Number"],
+                "GDX_SUB" : ["GDX Subtype", subsDomain],
+                "HOLD" : ["Holdings"],
+                "ISO_TYPE" : ["Isobar Type", {
+                    "1" : "Isobars Feet",
+                    "2" : "Isobars Fathoms",
+                    "3" : "Isobars Meters",
+                    "4" : "Contours Feet",
+                    "5" : "Contours Meters",
+                    "6" : "Multiple Isobar Types",
+                    "7" : "No Isobar Indicated"
+                }],
+                "ISO_VAL" : ["Isobar Value"],
+                "LAT_DIMEN" : ["Latitude Dimension"],
+                "LOCATION" : ["Location"],
+                "LON_DIMEN" : ["Latitude Dimension"],
+                "MAP_FOR" : ["Map Format", {
+                    "0" : "Not assigned",
+                    "211" : "180° Longitude X-over entry",
+                    "212" : "180° Longitude X-over entry",
+                    "47" : "County format",
+                    "998" : "Geologic map",
+                    "50" : "Inset on quad",
+                    "48" : "Irregular format",
+                    "996" : "Printed map - 2 color",
+                    "995" : "Printed map - colored",
+                    "42" : "Quad not entirely mapped",
+                    "49" : "Quad with inset",
+                    "45" : "Special quadrangle",
+                    "41" : "Standard quadrangle",
+                    "44" : "Std quad with extensions",
+                    "43" : "Std quad with overlap"
+                }],
+                "MAP_TYPE" : ["Map Type", {
+                    "0" : "Not assigned",
+                    "30" : "Administrative map",
+                    "1" : "Aerial photograph",
+                    "6" : "Aeronautical chart",
+                    "7" : "Bathymetric map",
+                    "21" : "Coal map",
+                    "5" : "Geologic map",
+                    "4" : "Hydrogeologic map",
+                    "11" : "Land use map",
+                    "12" : "Nautical chart",
+                    "13" : "Orthophoto map",
+                    "14" : "Planimetric map",
+                    "998" : "Printed map - 2 color",
+                    "997" : "Printed map - colored",
+                    "996" : "Printed map - monochrome",
+                    "995" : "Projection not indicated",
+                    "15" : "Reference map",
+                    "16" : "Road map",
+                    "22" : "Satellite image map",
+                    "24" : "Shaded relief map",
+                    "18" : "Topo map (contours)",
+                    "23" : "Topo map (form lines)",
+                    "19" : "Topo map (hachures)",
+                    "25" : "Topo map (irr interval)",
+                    "20" : "Topo map (layer tints)"
+                }],
+                "PRIME_MER" : ["Prime Meridian", {
+                    "0" : "Not assigned",
+                    "157" : "Athens PM",
+                    "999" : "C¢rdoba PM", // is this correct?
+                    "148" : "Copenhagen PM",
+                    "135" : "Ferro PM",
+                    "131" : "Greenwich PM",
+                    "132" : "Madrid PM",
+                    "146" : "Munich PM",
+                    "142" : "Paris PM",
+                    "138" : "Quito PM",
+                    "147" : "Rome PM"
+                }],
+                "PROJECT" : ["Projection", {
+                    "0": "Not assigned",
+                    "163" : "Azimuthal equidistant",
+                    "185" : "Bonne",
+                    "199" : "Cassini",
+                    "182" : "Conic equidistant",
+                    "183" : "Conic",
+                    "171" : "Cylindrical",
+                    "180" : "Gauss-Krüger",
+                    "999" : "Gauss-Krüger",
+                    "164" : "Gnomonic",
+                    "186" : "Lambert conformal conic",
+                    "175" : "Mercator",
+                    "176" : "Miller",
+                    "998" : "Munich PM",
+                    "187" : "Polyconic",
+                    "198" : "Polyhedric",
+                    "161" : "Not indicated",
+                    "178" : "Sinusoidal",
+                    "168" : "Stereographic",
+                    "179" : "Transverse Mercator"
+                }],
+                "PRODUCTION" : ["Production", {
+                    "0" : "Not assigned",
+                    "38" : "Blue line print",
+                    "39" : "Blueprint",
+                    "37" : "Negative microform",
+                    "35" : "Negative photocopy",
+                    "34" : "Positive photocopy",
+                    "32" : "Printed map - 2 color",
+                    "31" : "Printed map - colored",
+                    "33" : "Printed map - monochrome"
+                }],
+                "PUBLISHER" : ["Publisher"],
+                "RECORD" : ["Record"],
+                "RUN_DATE" : ["Run Date"],
+                "SCALE" : ["Scale"],
+                "SERIES_TIT" : ["Series"],
+                "Shape_Area" : ["GIS Shape Area"],
+                "Shape_Length" : ["GIS Shape Length"],
+                "X1" : ["West"],
+                "X2" : ["East"],
+                "Y1" : ["North"],
+                "Y2" : ["South"],
+                "YEAR1_TYPE" : ["Year 1 Type", yearTypeDomain],
+                "YEAR1" : ["Year 1"],
+                "YEAR2_TYPE" : ["Year 2 Type", yearTypeDomain],
+                "YEAR2" : ["Year 2"],
+                "YEAR3_TYPE" : ["Year 3 Type", yearTypeDomain],
+                "YEAR3" : ["Year 3"],
+                "YEAR4_TYPE" : ["Year 4 Type", yearTypeDomain],
+                "YEAR4" : ["Year 4"]
+            };
+            
             
             /////////////////////////////////////////////////
             // click on info icon, get modal with attrs    //
@@ -418,13 +618,33 @@ $(document).ready(function(){
                             var currentAttribute = attrKeys[b];
                             // grab the current value for the current attribute
                             var currentValue = attr[currentAttribute];
-                            // throw them both in an html string
-                            var tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
                             
-                            if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
-                                $('#attr-table-1>tbody').append(tableRowHtml);
-                            } else  { // throw the rest in table #2
-                                $('#attr-table-2>tbody').append(tableRowHtml);
+                            // check to see if this attribute is in "valuesVocab" above; change the vocabulary if so
+                            if(currentAttribute in valuesVocab){
+                                if (valuesVocab[currentAttribute].length > 1){ // see if the attribute has value vocab first
+                                    currentValue = valuesVocab[currentAttribute][1][currentValue];
+                                }
+                                currentAttribute = valuesVocab[currentAttribute][0];
+                            }
+                            
+                            // generate the html for the secondary attributes
+                            var tableRowHtml;
+                            if (currentAttribute === "NautChartID" || currentAttribute === "OBJECTID"){
+                                // do nothing
+                            } else if (currentValue === null || currentValue === "Not assigned" || currentValue === undefined){ // color these values differently
+                                tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td><span class="null-value">Not assigned</span></td></tr>' );
+                                if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
+                                    $('#attr-table-1>tbody').append(tableRowHtml);
+                                } else  { // throw the rest in table #2
+                                    $('#attr-table-2>tbody').append(tableRowHtml);
+                                }
+                            } else {
+                                tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
+                                if (b === 0 || b <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
+                                    $('#attr-table-1>tbody').append(tableRowHtml);
+                                } else  { // throw the rest in table #2
+                                    $('#attr-table-2>tbody').append(tableRowHtml);
+                                }
                             }
                         }
                     
@@ -486,7 +706,7 @@ $(document).ready(function(){
                 }
             }
         }
-
+        
         // and finally...
         console.log(query);
         return query;

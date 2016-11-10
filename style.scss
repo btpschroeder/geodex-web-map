@@ -91,7 +91,7 @@ tbody {
 .series-span{
     display: block;
     width: 100%;
-    background-color: lightblue;
+    background-color: #eee;
     margin-bottom: 0.5em;
     padding: 0.25em 18px 0.25em 0.5em;
     position: relative;
@@ -103,7 +103,12 @@ tbody {
     }
 }
 
-form em {
+form em{
     font-size: 1em;
     color: #777; 
+}
+
+.null-value{
+    color: #bbb;
+    font-style: italic;
 }
