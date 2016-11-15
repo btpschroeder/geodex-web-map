@@ -68,53 +68,74 @@
             <div class="row" id="map-row">
                 <section class="col-md-3" id="search-column">
                     <h1>AGSL Geodex Web Map</h1>
-                        <!--<span id="num-bookmarked">0</span>-->
-                    <form>
-                        <h2>Extent Search Type</h2>
-                        <div class="radio">
-                            <label>
-                                <input class="extent-radio" type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
-                                Records <strong> entirely within</strong> the current extent
-                            </label>
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="active"><a href="#search-parameters" id="tab-search" data-toggle="tab"><i class="fa fa-search" aria-hidden="true"></i> Search</a></li>
+                        <li role="presentation"><a href="#search-results" id="tab-results" data-toggle="tab"><i class="fa fa-list" aria-hidden="true"></i> Results (<span id="num-results">0</span>)</a></li>
+                        <li role="presentation"><a href="#bookmarks" id="tab-saved" data-toggle="tab"><i class="fa fa-bookmark" aria-hidden="true"></i> Saved (<span id="num-bookmarked">0</span>)</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" id="search-parameters" class="tab-pane fade in active">
+                            <form>
+                                <h2>Extent Search Type</h2>
+                                <div class="radio">
+                                    <label>
+                                        <input class="extent-radio" type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
+                                        Records <strong> entirely within</strong> the current extent
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input class="extent-radio" type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
+                                        Records <strong>intersecting</strong> the current extent
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label>
+                                        <input class="extent-radio" type="radio" name="search-extent-options" id="no-search-extent" value="no-search-extent">
+                                        Search <strong>without using</strong> the current extent<br />
+                                        <em>Search will only take the options below into account.</em>
+                                    </label>
+                                </div>
+                                <h2>Years</h2>
+                                <div class="form-group">
+                                    <select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
+                                </div>
+                                <div id="years-not-in-order" class="alert alert-danger" role="alert"><strong>This year range is invalid</strong> and will return no results. <a href="#" id="reset-years">Reset years</a></div>
+                                <h2>Series</h2>
+                                <div class="form-group">
+                                    <p><em>If no series is selected, all of them will be included when searching.</em></p>
+                                    <select name="series-list" id="series-list" value="series-list">
+                                        <option>Loading series list...</option>
+                                    </select>
+                                </div>
+                                <div id="series-to-be-searched"></div>
+                                <div class="checkbox" id="exclude-large-area-toggle">
+                                    <label>
+                                        <input type="checkbox" id="exclude-large-maps" value="exclude-large-maps">
+                                        Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
+                                    </label>
+                                </div>
+                                <button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
+                            </form>
                         </div>
-                        <div class="radio">
-                            <label>
-                                <input class="extent-radio" type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
-                                Records <strong>intersecting</strong> the current extent
-                            </label>
+                        <div role="tabpanel" class="tab-pane fade" id="search-results">
+                            <h2>Search Results</h2>
+                            <p>No search results to display.</p>
                         </div>
-                        <div class="radio">
-                            <label>
-                                <input class="extent-radio" type="radio" name="search-extent-options" id="no-search-extent" value="no-search-extent">
-                                Search <strong>without using</strong> the current extent<br />
-                                <em>Search will only take the options below into account.</em>
-                            </label>
+                        <div role="tabpanel" class="tab-pane fade" id="bookmarks">
+                            <h2>Saved Records</h2>
+                            <p>No saved records to display.</p>
                         </div>
-                        <h2>Years</h2>
-                        <div class="form-group">
-                            <select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
-                        </div>
-                        <div id="years-not-in-order" class="alert alert-danger" role="alert"><strong>This year range is invalid</strong> and will return no results. <a href="#" id="reset-years">Reset years</a></div>
-                        <h2>Series</h2>
-                        <div class="form-group">
-                            <p><em>If no series is selected, all of them will be included when searching.</em></p>
-                            <select name="series-list" id="series-list" value="series-list"></select>
-                        </div>
-                        <div id="series-to-be-searched"></div>
-                        <div class="checkbox" id="exclude-large-area-toggle">
-                            <label>
-                                <input type="checkbox" id="exclude-large-maps" value="exclude-large-maps">
-                                Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
-                            </label>
-                        </div>
-                        <button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
-                    </form>
-                    <div id="search-results"></div>
+                    </div>
                 </section>
                 <section class="col-md-9" id="map">
                 </section>
             </div>
         </main>
+        
+        <!-- this table is hidden from the user -->
+        <table id="export-table">
+        </table>
         
         <!-- JavaScript files -->
         <script src="https://use.fontawesome.com/8a40235401.js"></script>
@@ -123,6 +144,7 @@
         <script src="leaflet/leaflet.js"></script>
         <script src="leaflet/plugins/esri-leaflet/esri-leaflet.js"></script>
         <script src="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
+        <script src="excellentexport.js"></script>
         <script src="geodex-web-map.js"></script>
     </body>
 </html>

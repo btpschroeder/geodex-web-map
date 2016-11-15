@@ -6,6 +6,10 @@ var mapService = 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMa
 $(document).ready(function(){
     makeTheMap(); //... render the map
     
+    // hide Results and Saved Records divs
+    $('#bookmarks').hide();
+    $('#search-results').hide();
+    
     // hide "Exclude large maps..." option by default...
     $('#exclude-large-area-toggle').hide();
     // ...and show it when the user selects "intersects" method
@@ -17,6 +21,38 @@ $(document).ready(function(){
             $('#exclude-large-maps').prop('checked', false);
         }
     });
+    
+    /////////////////////////////////////////////////
+    // navigation tabs                             //
+    /////////////////////////////////////////////////
+    
+        // eventually want to re-write this
+    
+        function showTab(tabToShow) {
+            if (tabToShow === 'saved'){
+                $('#search-parameters').hide();
+                $('#search-results').hide();
+                $('#bookmarks').show();
+            } else if (tabToShow === 'results') {
+                $('#search-parameters').hide();
+                $('#bookmarks').hide();
+                $('#search-results').show();
+            } else if (tabToShow === 'search') {
+                $('#bookmarks').hide();
+                $('#search-results').hide();
+                $('#search-parameters').show();
+            }
+        }
+    
+        $('#tab-saved').on('click', function(){
+            showTab('saved');
+        });
+        $('#tab-results').on('click', function(){
+            showTab('results');
+        });
+        $('#tab-search').on('click', function(){
+            showTab('search');
+        });
     
     /////////////////////////////////////////////////
     // populate "years" drown-down automatically   //
@@ -206,7 +242,7 @@ $(document).ready(function(){
             });
         
         /////////////////////////////////////////////////
-        // search current extent                       //
+        // search                                      //
         /////////////////////////////////////////////////
         
             $('#search-geodex-button').on('click', function(){ // when the user clicks the "search current extent" button...
@@ -243,8 +279,8 @@ $(document).ready(function(){
         /////////////////////////////////////////////////
 
             function displaySearchResults(s) { // in this function, the s parameter refers to search results passed in
-            
-                function showTheResults(s) {}
+
+                $('#num-results').html(s.length);
                     
                 var temporaryLayer;
                 var alertHtml;
@@ -259,7 +295,6 @@ $(document).ready(function(){
 
                 var resultsHtml = // all of the output html will be stored in this variable
                     '<h2>Seach Results</h2>' +
-                    '<p><button type="button" class="btn btn-default" id="clear-results">Clear search results</button>' +
                     alertHtml + // were any alerts called above?
                     '<p>' +
                     'Found <strong>' + s.length + '</strong> results in ';
@@ -319,12 +354,10 @@ $(document).ready(function(){
                 
                 $('#search-results').html( // once everything else is done, change the "search-results" div's html to match that of the resultsHtml variable
                     resultsHtml
-                );
-                
-                // click "clear search results" to empty search results entirely
-                $('#clear-results').on('click', function(){
-                    removeAllOutlines();
-                    $('#search-results').empty();
+                )
+                .promise()
+                .done(function(){
+                    $('#tab-results').click();
                 });
             
             /////////////////////////////////////////////////
@@ -393,7 +426,7 @@ $(document).ready(function(){
                         $(this).addClass('remove-bookmark');
                         $(this).attr('id', ('remove-bookmark-' + bookmarkThis));
                         $(this).html('<i class="fa fa-lg fa-bookmark" aria-hidden="false"></i>')
-                        $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
+                        $('#num-bookmarked').html(savedRecords.length);
                     } else {
                         var unbookmarkThis = $(this).attr('id').replace('remove-bookmark-', '');
                         var unbookmarkIndex = savedRecords.indexOf(unbookmarkThis);
@@ -404,188 +437,261 @@ $(document).ready(function(){
                         $(this).addClass('add-bookmark');
                         $(this).attr('id', ('add-bookmark-' + unbookmarkThis));
                         $(this).html('<i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i>')
-                        $('#num-bookmarked').html('<strong>' + savedRecords.length + '</strong>');
+                        $('#num-bookmarked').html(savedRecords.length);
                     }
                     
+                    updateRecordsList();
+                    
                 });
+                
+            /////////////////////////////////////////////////
+            // saved records display function              //
+            /////////////////////////////////////////////////
+            
+                function updateRecordsList() {
+                    
+                    createExportTable();
+                    
+                    // generate ul
+                    var bookmarksHtml = '<h2>Saved Records</h2>';
+                    bookmarksHtml += '<ul>'
+                    for (w = 0; w < savedRecords.length; w++) {
+                        bookmarksHtml += ('<li>' + savedRecords[w] + '</li>');
+                    }
+                    
+                    bookmarksHtml += ('</ul>' + '<a download="geodex.xls" class="btn btn-default" href="#" onclick="return ExcellentExport.excel(this, \'export-table\', \'Geodex Records\');">Export to Excel (.xls)</a>');
+                    $('#bookmarks').html(bookmarksHtml);
+                }
+                
+            /////////////////////////////////////////////////
+            // export table                                //
+            /////////////////////////////////////////////////
+                    
+                function createExportTable(){
+                    
+                    $('#export-table').empty();
+                    
+                    //to change which attributes appear in the exported Excel file, simply update this array!
+                    var exportTableAttributes = ['OBJECTID', 'DATE', 'CATLOC'];
+                
+                    // create the table head
+                    var exportTableHtml = '<thead><tr>';
+                    for (w = 0; w < exportTableAttributes.length; w++) {
+                        exportTableHtml += ('<td>' + exportTableAttributes[w] + '</td>');
+                    }
+                    exportTableHtml += '</tr></thead><tbody>';
+                   
+                    // to create the table body, we must query all of the saved records
+                    var exportTableQuery = L.esri.query({
+                        url: mapService
+                    });
+                    
+                    // loop through all of the saved records to create an sql query
+                    var exportTableSql = '';
+                    for(u = 0; u < savedRecords.length; u++) {
+                        exportTableSql += ('OBJECTID = ' + savedRecords[u]);
+                        if (u !== (savedRecords.length - 1)){
+                            exportTableSql += ' OR ';
+                        }
+                    }
+
+                    // run the sql query we just made
+                    exportTableQuery.where(exportTableSql).fields(exportTableAttributes).returnGeometry(false);
+                    exportTableQuery.run(function(error, sqlResult, response){
+                        // now use the query results to create the table body
+                        for(n = 0; n < sqlResult.features.length; n++) {
+                            exportTableHtml += '<tr>'
+                                for(m = 0; m < exportTableAttributes.length; m++){
+                                    var getThisAttr = exportTableAttributes[m];
+                                    exportTableHtml += ('<td>' + sqlResult.features[n].properties[getThisAttr] + '</td>');
+                                }
+                            exportTableHtml += '</tr>'
+                            if (n === (sqlResult.features.length -1)) {
+                                exportTableHtml += '</tbody>';
+                                $('#export-table').html(exportTableHtml);
+                            }
+                        }
+                    });
+                   
+                }
 
             /////////////////////////////////////////////////
             // attribute table vocabulary                  //
             /////////////////////////////////////////////////
-            
-            // these domains are used in multiple attributes; might as well store them separately
-            var yearTypeDomain = {
-                "97" : "Approximate Date",
-                "98" : "Publication Date",
-                "99" : "Compilation Date",
-                "100" : "Base Map Date",
-                "102" : "Field Checked",
-                "103" : "Image Year",
-                "104" : "Photography to",
-                "105" : "Photo Inspected",
-                "106" : "Image Date",
-                "108" : "Preliminary Edition",
-                "109" : "Compiled From Map Dated",
-                "110" : "Interim Edition",
-                "112" : "Printed",
-                "113" : "Printed Circa",
-                "114" : "Revised",
-                "115" : "Situation/Survey",
-                "116" : "Transportation Network",
-                "118" : "Provisional Edition",
-                "120" : "Photo Revised",
-                "121" : "Edition of",
-                "119" : "Magnetic Declination Year"
-            };
-            
-            var subsDomain = {
-                "0": "Not assigned",
-                "1": "Global Coverage",
-                "2": "Regional Coverage",
-                "3": "Nautical, Aeronautical, and Lake Charts",
-                "4": "USGS Topographic Quads"
-            };
-            
-            /*
-            maintaining the structure of this is very important!
-                - each attribute that needs changing (or has values that need changing) is a key in the valuesVocab object
-                - the value for the key is one array that should not exceed two values
-                - the first value in the array is the new name for the attribute
-                - the second value is the array is an object containing definitions for individual values -- this is OPTIONAL
-                - attributes can be left out of this object entirely to maintain their default attribute names/value names
-            */
-            
-            var valuesVocab = {
-                "CATLOC" : ["Catalog Location"],
-                "DATE" : ["Date"],
-                "EDITION_NO" : ["Edition Number"],
-                "GDX_FILE" : ["GDX Series"],
-                "GDX_NUM" : ["GDX File Number"],
-                "GDX_SUB" : ["GDX Subtype", subsDomain],
-                "HOLD" : ["Holdings"],
-                "ISO_TYPE" : ["Isobar Type", {
-                    "1" : "Isobars Feet",
-                    "2" : "Isobars Fathoms",
-                    "3" : "Isobars Meters",
-                    "4" : "Contours Feet",
-                    "5" : "Contours Meters",
-                    "6" : "Multiple Isobar Types",
-                    "7" : "No Isobar Indicated"
-                }],
-                "ISO_VAL" : ["Isobar Value"],
-                "LAT_DIMEN" : ["Latitude Dimension"],
-                "LOCATION" : ["Location"],
-                "LON_DIMEN" : ["Latitude Dimension"],
-                "MAP_FOR" : ["Map Format", {
-                    "0" : "Not assigned",
-                    "211" : "180° Longitude X-over entry",
-                    "212" : "180° Longitude X-over entry",
-                    "47" : "County format",
-                    "998" : "Geologic map",
-                    "50" : "Inset on quad",
-                    "48" : "Irregular format",
-                    "996" : "Printed map - 2 color",
-                    "995" : "Printed map - colored",
-                    "42" : "Quad not entirely mapped",
-                    "49" : "Quad with inset",
-                    "45" : "Special quadrangle",
-                    "41" : "Standard quadrangle",
-                    "44" : "Std quad with extensions",
-                    "43" : "Std quad with overlap"
-                }],
-                "MAP_TYPE" : ["Map Type", {
-                    "0" : "Not assigned",
-                    "30" : "Administrative map",
-                    "1" : "Aerial photograph",
-                    "6" : "Aeronautical chart",
-                    "7" : "Bathymetric map",
-                    "21" : "Coal map",
-                    "5" : "Geologic map",
-                    "4" : "Hydrogeologic map",
-                    "11" : "Land use map",
-                    "12" : "Nautical chart",
-                    "13" : "Orthophoto map",
-                    "14" : "Planimetric map",
-                    "998" : "Printed map - 2 color",
-                    "997" : "Printed map - colored",
-                    "996" : "Printed map - monochrome",
-                    "995" : "Projection not indicated",
-                    "15" : "Reference map",
-                    "16" : "Road map",
-                    "22" : "Satellite image map",
-                    "24" : "Shaded relief map",
-                    "18" : "Topo map (contours)",
-                    "23" : "Topo map (form lines)",
-                    "19" : "Topo map (hachures)",
-                    "25" : "Topo map (irr interval)",
-                    "20" : "Topo map (layer tints)"
-                }],
-                "PRIME_MER" : ["Prime Meridian", {
-                    "0" : "Not assigned",
-                    "157" : "Athens PM",
-                    "999" : "C¢rdoba PM", // is this correct?
-                    "148" : "Copenhagen PM",
-                    "135" : "Ferro PM",
-                    "131" : "Greenwich PM",
-                    "132" : "Madrid PM",
-                    "146" : "Munich PM",
-                    "142" : "Paris PM",
-                    "138" : "Quito PM",
-                    "147" : "Rome PM"
-                }],
-                "PROJECT" : ["Projection", {
+                
+                // these domains are used in multiple attributes; might as well store them separately
+                var yearTypeDomain = {
+                    "97" : "Approximate Date",
+                    "98" : "Publication Date",
+                    "99" : "Compilation Date",
+                    "100" : "Base Map Date",
+                    "102" : "Field Checked",
+                    "103" : "Image Year",
+                    "104" : "Photography to",
+                    "105" : "Photo Inspected",
+                    "106" : "Image Date",
+                    "108" : "Preliminary Edition",
+                    "109" : "Compiled From Map Dated",
+                    "110" : "Interim Edition",
+                    "112" : "Printed",
+                    "113" : "Printed Circa",
+                    "114" : "Revised",
+                    "115" : "Situation/Survey",
+                    "116" : "Transportation Network",
+                    "118" : "Provisional Edition",
+                    "120" : "Photo Revised",
+                    "121" : "Edition of",
+                    "119" : "Magnetic Declination Year"
+                };
+                
+                var subsDomain = {
                     "0": "Not assigned",
-                    "163" : "Azimuthal equidistant",
-                    "185" : "Bonne",
-                    "199" : "Cassini",
-                    "182" : "Conic equidistant",
-                    "183" : "Conic",
-                    "171" : "Cylindrical",
-                    "180" : "Gauss-Krüger",
-                    "999" : "Gauss-Krüger",
-                    "164" : "Gnomonic",
-                    "186" : "Lambert conformal conic",
-                    "175" : "Mercator",
-                    "176" : "Miller",
-                    "998" : "Munich PM",
-                    "187" : "Polyconic",
-                    "198" : "Polyhedric",
-                    "161" : "Not indicated",
-                    "178" : "Sinusoidal",
-                    "168" : "Stereographic",
-                    "179" : "Transverse Mercator"
-                }],
-                "PRODUCTION" : ["Production", {
-                    "0" : "Not assigned",
-                    "38" : "Blue line print",
-                    "39" : "Blueprint",
-                    "37" : "Negative microform",
-                    "35" : "Negative photocopy",
-                    "34" : "Positive photocopy",
-                    "32" : "Printed map - 2 color",
-                    "31" : "Printed map - colored",
-                    "33" : "Printed map - monochrome"
-                }],
-                "PUBLISHER" : ["Publisher"],
-                "RECORD" : ["Record"],
-                "RUN_DATE" : ["Run Date"],
-                "SCALE" : ["Scale"],
-                "SERIES_TIT" : ["Series"],
-                "Shape_Area" : ["GIS Shape Area"],
-                "Shape_Length" : ["GIS Shape Length"],
-                "X1" : ["West"],
-                "X2" : ["East"],
-                "Y1" : ["North"],
-                "Y2" : ["South"],
-                "YEAR1_TYPE" : ["Year 1 Type", yearTypeDomain],
-                "YEAR1" : ["Year 1"],
-                "YEAR2_TYPE" : ["Year 2 Type", yearTypeDomain],
-                "YEAR2" : ["Year 2"],
-                "YEAR3_TYPE" : ["Year 3 Type", yearTypeDomain],
-                "YEAR3" : ["Year 3"],
-                "YEAR4_TYPE" : ["Year 4 Type", yearTypeDomain],
-                "YEAR4" : ["Year 4"]
-            };
+                    "1": "Global Coverage",
+                    "2": "Regional Coverage",
+                    "3": "Nautical, Aeronautical, and Lake Charts",
+                    "4": "USGS Topographic Quads"
+                };
+                
+                /*
+                maintaining the structure of this is very important!
+                    - each attribute that needs changing (or has values that need changing) is a key in the valuesVocab object
+                    - the value for the key is one array that should not exceed two values
+                    - the first value in the array is the new name for the attribute
+                    - the second value is the array is an object containing definitions for individual values -- this is OPTIONAL
+                    - attributes can be left out of this object entirely to maintain their default attribute names/value names
+                */
+                
+                var valuesVocab = {
+                    "CATLOC" : ["Catalog Location"],
+                    "DATE" : ["Date"],
+                    "EDITION_NO" : ["Edition Number"],
+                    "GDX_FILE" : ["GDX Series"],
+                    "GDX_NUM" : ["GDX File Number"],
+                    "GDX_SUB" : ["GDX Subtype", subsDomain],
+                    "HOLD" : ["Holdings"],
+                    "ISO_TYPE" : ["Isobar Type", {
+                        "1" : "Isobars Feet",
+                        "2" : "Isobars Fathoms",
+                        "3" : "Isobars Meters",
+                        "4" : "Contours Feet",
+                        "5" : "Contours Meters",
+                        "6" : "Multiple Isobar Types",
+                        "7" : "No Isobar Indicated"
+                    }],
+                    "ISO_VAL" : ["Isobar Value"],
+                    "LAT_DIMEN" : ["Latitude Dimension"],
+                    "LOCATION" : ["Location"],
+                    "LON_DIMEN" : ["Latitude Dimension"],
+                    "MAP_FOR" : ["Map Format", {
+                        "0" : "Not assigned",
+                        "211" : "180° Longitude X-over entry",
+                        "212" : "180° Longitude X-over entry",
+                        "47" : "County format",
+                        "998" : "Geologic map",
+                        "50" : "Inset on quad",
+                        "48" : "Irregular format",
+                        "996" : "Printed map - 2 color",
+                        "995" : "Printed map - colored",
+                        "42" : "Quad not entirely mapped",
+                        "49" : "Quad with inset",
+                        "45" : "Special quadrangle",
+                        "41" : "Standard quadrangle",
+                        "44" : "Std quad with extensions",
+                        "43" : "Std quad with overlap"
+                    }],
+                    "MAP_TYPE" : ["Map Type", {
+                        "0" : "Not assigned",
+                        "30" : "Administrative map",
+                        "1" : "Aerial photograph",
+                        "6" : "Aeronautical chart",
+                        "7" : "Bathymetric map",
+                        "21" : "Coal map",
+                        "5" : "Geologic map",
+                        "4" : "Hydrogeologic map",
+                        "11" : "Land use map",
+                        "12" : "Nautical chart",
+                        "13" : "Orthophoto map",
+                        "14" : "Planimetric map",
+                        "998" : "Printed map - 2 color",
+                        "997" : "Printed map - colored",
+                        "996" : "Printed map - monochrome",
+                        "995" : "Projection not indicated",
+                        "15" : "Reference map",
+                        "16" : "Road map",
+                        "22" : "Satellite image map",
+                        "24" : "Shaded relief map",
+                        "18" : "Topo map (contours)",
+                        "23" : "Topo map (form lines)",
+                        "19" : "Topo map (hachures)",
+                        "25" : "Topo map (irr interval)",
+                        "20" : "Topo map (layer tints)"
+                    }],
+                    "PRIME_MER" : ["Prime Meridian", {
+                        "0" : "Not assigned",
+                        "157" : "Athens PM",
+                        "999" : "C¢rdoba PM", // is this correct?
+                        "148" : "Copenhagen PM",
+                        "135" : "Ferro PM",
+                        "131" : "Greenwich PM",
+                        "132" : "Madrid PM",
+                        "146" : "Munich PM",
+                        "142" : "Paris PM",
+                        "138" : "Quito PM",
+                        "147" : "Rome PM"
+                    }],
+                    "PROJECT" : ["Projection", {
+                        "0": "Not assigned",
+                        "163" : "Azimuthal equidistant",
+                        "185" : "Bonne",
+                        "199" : "Cassini",
+                        "182" : "Conic equidistant",
+                        "183" : "Conic",
+                        "171" : "Cylindrical",
+                        "180" : "Gauss-Krüger",
+                        "999" : "Gauss-Krüger",
+                        "164" : "Gnomonic",
+                        "186" : "Lambert conformal conic",
+                        "175" : "Mercator",
+                        "176" : "Miller",
+                        "998" : "Munich PM",
+                        "187" : "Polyconic",
+                        "198" : "Polyhedric",
+                        "161" : "Not indicated",
+                        "178" : "Sinusoidal",
+                        "168" : "Stereographic",
+                        "179" : "Transverse Mercator"
+                    }],
+                    "PRODUCTION" : ["Production", {
+                        "0" : "Not assigned",
+                        "38" : "Blue line print",
+                        "39" : "Blueprint",
+                        "37" : "Negative microform",
+                        "35" : "Negative photocopy",
+                        "34" : "Positive photocopy",
+                        "32" : "Printed map - 2 color",
+                        "31" : "Printed map - colored",
+                        "33" : "Printed map - monochrome"
+                    }],
+                    "PUBLISHER" : ["Publisher"],
+                    "RECORD" : ["Record"],
+                    "RUN_DATE" : ["Run Date"],
+                    "SCALE" : ["Scale"],
+                    "SERIES_TIT" : ["Series"],
+                    "Shape_Area" : ["GIS Shape Area"],
+                    "Shape_Length" : ["GIS Shape Length"],
+                    "X1" : ["West"],
+                    "X2" : ["East"],
+                    "Y1" : ["North"],
+                    "Y2" : ["South"],
+                    "YEAR1_TYPE" : ["Year 1 Type", yearTypeDomain],
+                    "YEAR1" : ["Year 1"],
+                    "YEAR2_TYPE" : ["Year 2 Type", yearTypeDomain],
+                    "YEAR2" : ["Year 2"],
+                    "YEAR3_TYPE" : ["Year 3 Type", yearTypeDomain],
+                    "YEAR3" : ["Year 3"],
+                    "YEAR4_TYPE" : ["Year 4 Type", yearTypeDomain],
+                    "YEAR4" : ["Year 4"]
+                };
             
             
             /////////////////////////////////////////////////
