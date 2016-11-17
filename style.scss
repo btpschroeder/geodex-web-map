@@ -112,6 +112,6 @@ form em{
     font-style: italic;
 }
 
-#export-table{
+#export-table thead, #export-table tbody{
     display: none; 
 }

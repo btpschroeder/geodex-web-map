@@ -1,6 +1,7 @@
 var savedRecords = []; // this array will store any records the user has chosen to "bookmark"
 var searchTheseSeries = []; // this array will store the series that the user wishes to search
 var mapService = 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0'; // the url for our map service; will be referenced in a lot of places
+var tableExportVisible = false; // are the saved record export buttons visible?
 
 // when document is ready...
 $(document).ready(function(){
@@ -340,16 +341,25 @@ $(document).ready(function(){
                         }
                         
                         if (cat === ser) {
-                            listToReturn += (
-                                '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + oid +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
-                            )
+                            listToReturn += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span>');
+                            listToReturn += searchResultsBookmarkDetermine(oid.toString());
+                            listToReturn += '</li>';
                         } else if (cat === "No associated series" && ser === null) { // need this to deal with series containing a null value
-                            listToReturn += (
-                               '<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span><a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + oid +'"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a></li>'
-                            )
+                            listToReturn += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span>');
+                            listToReturn += searchResultsBookmarkDetermine(oid.toString());
+                            listToReturn += '</li>';
+  
                         }
                     }
                     return listToReturn;
+                }
+                
+                function searchResultsBookmarkDetermine (q) {
+                    if (savedRecords.indexOf(q) >= 0){
+                        return ('<a href="#" class="bookmark-link remove-bookmark" id="remove-bookmark-' + q + '"><i class="fa fa-lg fa-bookmark" aria-hidden="false"></i></a>')
+                    } else {
+                        return ('<a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + q + '"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a>')
+                    }
                 }
                 
                 $('#search-results').html( // once everything else is done, change the "search-results" div's html to match that of the resultsHtml variable
@@ -420,6 +430,7 @@ $(document).ready(function(){
                     var thisIsAddLink = $(this).hasClass('add-bookmark');
                     
                     if(thisIsAddLink) {
+                        $('#no-saved-records').empty();
                         var bookmarkThis = $(this).attr('id').replace('add-bookmark-', '');
                         savedRecords.push(bookmarkThis);
                         $(this).removeClass('add-bookmark');
@@ -452,15 +463,15 @@ $(document).ready(function(){
                     
                     createExportTable();
                     
-                    // generate ul
-                    var bookmarksHtml = '<h2>Saved Records</h2>';
-                    bookmarksHtml += '<ul>'
+                    var exportTable = $('#export-table').tableExport();
+                    
+                    // generate <li>s
+                    var bookmarksHtml = '';
                     for (w = 0; w < savedRecords.length; w++) {
                         bookmarksHtml += ('<li>' + savedRecords[w] + '</li>');
                     }
                     
-                    bookmarksHtml += ('</ul>' + '<a download="geodex.xls" class="btn btn-default" href="#" onclick="return ExcellentExport.excel(this, \'export-table\', \'Geodex Records\');">Export to Excel (.xls)</a>');
-                    $('#bookmarks').html(bookmarksHtml);
+                    $('#saved-records-list').html(bookmarksHtml);
                 }
                 
             /////////////////////////////////////////////////
@@ -511,6 +522,10 @@ $(document).ready(function(){
                                 $('#export-table').html(exportTableHtml);
                             }
                         }
+                        $('#export-table').tableExport({
+                            fileName: 'geodexrecords',
+                            formats: ['xls']
+                        });
                     });
                    
                 }

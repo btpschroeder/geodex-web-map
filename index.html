@@ -124,7 +124,11 @@
                         </div>
                         <div role="tabpanel" class="tab-pane fade" id="bookmarks">
                             <h2>Saved Records</h2>
-                            <p>No saved records to display.</p>
+                            <ul id="saved-records-list">
+                            </ul>
+                            <p id="no-saved-records">No saved records to display.</p>
+                            <!-- this table is hidden from the user -->
+                            <table id="export-table"></table>
                         </div>
                     </div>
                 </section>
@@ -133,10 +137,6 @@
             </div>
         </main>
         
-        <!-- this table is hidden from the user -->
-        <table id="export-table">
-        </table>
-        
         <!-- JavaScript files -->
         <script src="https://use.fontawesome.com/8a40235401.js"></script>
         <script src="jquery/jquery-3.1.1.min.js"></script>
@@ -144,7 +144,8 @@
         <script src="leaflet/leaflet.js"></script>
         <script src="leaflet/plugins/esri-leaflet/esri-leaflet.js"></script>
         <script src="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
-        <script src="excellentexport.js"></script>
+        <script src="tableexport/FileSaver.js"></script>
+        <script src="tableexport/TableExport.js"></script>
         <script src="geodex-web-map.js"></script>
     </body>
 </html>
