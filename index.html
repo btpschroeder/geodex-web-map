@@ -16,7 +16,7 @@
     </head>
     <body>
     
-        <!-- Attribute modal... this is really really ugly, sorry -->
+        <!-- Attribute modal -->
         <div class="modal fade" id="attrModal" tabindex="-1" role="dialog" aria-labelledby="attrModal">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -124,11 +124,12 @@
                         </div>
                         <div role="tabpanel" class="tab-pane fade" id="bookmarks">
                             <h2>Saved Records</h2>
+							<button id="update-saved-records-list" type="button" class="btn btn-primary">Update Saved Records List</button>
                             <ul id="saved-records-list">
                             </ul>
-                            <p id="no-saved-records">No saved records to display.</p>
-                            <!-- this table is hidden from the user -->
-                            <table id="export-table"></table>
+                            <p id="no-saved-records">You have not bookmarked any records.</p>
+							<!-- this table is hidden from the user unless they're printing! -->
+							<table id="export-table" class="table table-bordered table-condensed"></table>
                         </div>
                     </div>
                 </section>

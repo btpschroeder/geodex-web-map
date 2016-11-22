@@ -10,6 +10,9 @@
 			this.years.populate();
 			this.series.getAll();
 			this.map.initialize();
+			String.prototype.replaceAll = function(target, replacement) { // needed to get rid of all apostrophes from search results
+				return this.split(target).join(replacement);
+			};
 		},
 		
 		//=====================================================//
@@ -112,17 +115,60 @@
 					$(linkClicked).html('<i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i>')
 					$('#num-bookmarked').html(Geodex.bookmarks.saved.length);
 				};
-				this.updateRecordsList();
 			},
 			updateRecordsList: function() {
 				this.createExportTable();
 				//var exportTable = $('#export-table').tableExport();
 				// generate something
-				var bookmarksHtml = '';
+				var bookmarksHtml = '<ul class="list-group">';
+				bookmarksQuery = L.esri.query({
+					url: Geodex.map.service
+				})
+				var bookmarksSql = '';
 				$.each(this.saved, function(i, v){
-					bookmarksHtml += ('<li>' + v + '</li>');
+					bookmarksSql += ('OBJECTID = ' + v)
+					if ((Geodex.bookmarks.saved.length - 1) > i){
+						bookmarksSql += ' OR ';
+					}
 				});
-				$('#saved-records-list').html(bookmarksHtml);
+				bookmarksQuery.where(bookmarksSql);
+				bookmarksQuery.run(function(error, results, response) {
+					$.each(results.features, function(i, v) {
+						var loc = v.properties.LOCATION;
+						var date = v.properties.DATE;
+						var rec = v.properties.RECORD;
+						var oid = v.properties.OBJECTID;
+						var ser = v.properties.SERIES_TIT;
+						if (loc === null) {
+							loc = '';
+						} else {
+							loc = ': ' + loc;
+						}
+						bookmarksHtml += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span>');
+						var checkBookmark = oid.toString();
+						if (Geodex.bookmarks.saved.indexOf(checkBookmark) >= 0) {
+							bookmarksHtml += ('<a href="#" class="bookmark-link remove-bookmark" id="remove-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark" aria-hidden="false"></i></a>');
+						} else {
+							bookmarksHtml += ('<a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a>');
+						}
+						bookmarksHtml += '</li>';
+						if ((results.features.length - 1) === i) {
+							bookmarksHtml += '</ul>';
+							$('#saved-records-list').html(bookmarksHtml).promise().done(function(){
+								$('.show-map-outline-link').off();
+								$('.show-map-outline-link').click(function(){
+									Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''))
+								});
+								$('.bookmark-link').click(function() {
+									Geodex.bookmarks.bookmarkLinkClick(this);
+								});
+								$('.attr-modal-link').click(function() {
+									Geodex.search.getAttributeTable(this);
+								});
+							});
+						}
+					});
+				});
 			},
 			exportTableAttributes: ['OBJECTID', 'DATE', 'CATLOC'],
 			createExportTable: function() {
@@ -159,6 +205,11 @@
 						fileName: 'geodex_records',
 						formats: ['xls']
 					});
+					$('#print').remove();
+					$('#bookmarks').append('<button id="print" class="btn btn-default"><i class="fa fa-print" aria-hidden="true"></i> Print</button>');
+					$('#print').click(function() {
+						window.print();
+					});
 				});
 			}
 		},
@@ -194,8 +245,8 @@
 				if (Geodex.search.series.length > 0) {
 					query += ' AND ( ';
 					$.each(Geodex.search.series, function(i, v) {
-						var s = v.replace("'", "''");
-						query += ("SERIES_TIT = '" + v + "'");
+						var s = v.replaceAll("'", "''");
+						query += ("SERIES_TIT = '" + s + "'");
 						if (i < Geodex.search.series.length - 1) {
 							query += ' OR ';
 						} else {
@@ -280,13 +331,11 @@
 					var rec = v.properties.RECORD;
 					var oid = v.properties.OBJECTID;
 					var ser = v.properties.SERIES_TIT;
-					
 					if (loc === null) {
 						loc = '';
 					} else {
 						loc = ': ' + loc;
 					}
-					
 					if(category === ser  || (category === "No associated series" && ser === null)) {
 						listToReturn += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span>');
 						var checkBookmark = oid.toString();
@@ -664,4 +713,8 @@
 	$('#attrModal').on('hide.bs.modal', function() {
 		$('#attr-table-1>tbody').empty();
 		$('#attr-table-2>tbody').empty();
+	});
+	$('#update-saved-records-list').click(function(e) {
+		e.preventDefault();
+		Geodex.bookmarks.updateRecordsList();
 	});
