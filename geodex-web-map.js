@@ -407,7 +407,7 @@
 				geocoderControl.addTo(theMap);
 			},
 			defaultView: {
-				coordinates: [41.621602, -43.637695],
+				coordinates: [43.380099, -91.252441],
 				zoom: 4
 			},
 			maxBounds: [[-180, -180], [180, 180]],
