@@ -118,8 +118,6 @@
 			},
 			updateRecordsList: function() {
 				this.createExportTable();
-				//var exportTable = $('#export-table').tableExport();
-				// generate something
 				var bookmarksHtml = '<ul class="list-group">';
 				bookmarksQuery = L.esri.query({
 					url: Geodex.map.service
@@ -461,13 +459,59 @@
 					.setMaxBounds(Geodex.map.maxBounds);
 				Geodex.map.basemaps.load();
 				Geodex.map.addGeocoder();
+				Geodex.map.addOutlineControl();
 				$('#current-zoom-level').html(Geodex.map.defaultView.zoom);
 				theMap.on('zoomend', function(){
 					var currentZoom = theMap.getZoom();
 					$('#current-zoom-level').html(currentZoom);
 				});
 			},
-			outlineColor: 'red',
+			outlineColor: 'Red',
+			outlineColorOptions: ['Red', 'Blue', 'Green', 'Purple', 'Brown'],
+			addOutlineControl: function() {
+				var outlineControl = L.Control.extend({
+					options: {
+						position: 'bottomleft'
+					},
+					onAdd: function(theMap) {
+						var container = L.DomUtil.create('div', 'outline-control');
+						return container;
+					}
+				});
+				theMap.addControl(new outlineControl());
+				var colorControlHtml = '<p>Outline color: <select id="color-control-select">';
+				$.each(Geodex.map.outlineColorOptions, function(i, v) {
+					colorControlHtml += '<option value="' + v + '">' + v + '</option>';
+					if(i === (Geodex.map.outlineColorOptions.length - 1)) {
+						colorControlHtml += '</select></p>'
+						$('.outline-control').append(colorControlHtml);
+					}
+				});
+				$('#color-control-select').css('border', '2px solid ' + Geodex.map.outlineColor);
+				var panZoomHtml = '<p>Automatic pan: <select id="panzoom-control-select">';
+				$.each(Geodex.map.panZoomOptions, function(i, v) {
+					panZoomHtml += '<option value="' + i + '">' + v.label + '</option>';
+					if(i === (Geodex.map.panZoomOptions.length - 1)) {
+						panZoomHtml += '</select></p>'
+						$('.outline-control').append(panZoomHtml);
+					}
+				});
+				$('#color-control-select').change(function() {
+					Geodex.map.outlineColor = $(this).val();
+					$('#color-control-select').css('border', '2px solid ' + Geodex.map.outlineColor);
+				});
+				$('#panzoom-control-select').change(function() {
+					userOption = $(this).val();
+					userOption = parseInt(userOption);
+					Geodex.map.zoomLock = Geodex.map.panZoomOptions[userOption].zoomlock;
+					Geodex.map.panLock = Geodex.map.panZoomOptions[userOption].panlock;
+				});
+			},
+			panZoomOptions: [
+				{label: 'Pan to feature if outside extent', zoomlock: true, panlock: false},
+				{label: 'Pan and zoom to feature', zoomlock: false, panlock: false},
+				{label: 'No automatic panning or zooming', zoomlock: true, panlock: true}
+				],
 			removeFeatureOutline: function() {
 				temporaryLayerGroup.remove();
 				Geodex.map.hasSearchResultOutline = false;
@@ -497,6 +541,12 @@
 								animate: true
 							});
 						}
+					} else if (!Geodex.map.zoomLock && !Geodex.map.panLock) {
+						var panAndZoomToHere = temporaryLayer.getBounds();
+						theMap.fitBounds(panAndZoomToHere, {
+							maxZoom: Geodex.map.zoom.max,
+							animate: true
+						});
 					}
 					Geodex.map.hasSearchResultOutline = true;
 				});
