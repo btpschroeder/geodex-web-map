@@ -499,6 +499,9 @@
 				$('#color-control-select').change(function() {
 					Geodex.map.outlineColor = $(this).val();
 					$('#color-control-select').css('border', '2px solid ' + Geodex.map.outlineColor);
+					if(Geodex.map.hasSearchResultOutline) {
+						temporaryLayerGroup.setStyle({color: Geodex.map.outlineColor});
+					}
 				});
 				$('#panzoom-control-select').change(function() {
 					userOption = $(this).val();
@@ -508,8 +511,8 @@
 				});
 			},
 			panZoomOptions: [
-				{label: 'Pan to feature if outside extent', zoomlock: true, panlock: false},
-				{label: 'Pan and zoom to feature', zoomlock: false, panlock: false},
+				{label: 'Pan to outline if outside extent', zoomlock: true, panlock: false},
+				{label: 'Pan and zoom to outline', zoomlock: false, panlock: false},
 				{label: 'No automatic panning or zooming', zoomlock: true, panlock: true}
 				],
 			removeFeatureOutline: function() {
@@ -530,7 +533,7 @@
 						thisFeaturesGeometry[i].reverse();
 					}
 					temporaryLayer = L.polygon(thisFeaturesGeometry, {color: Geodex.map.outlineColor});
-					temporaryLayerGroup = L.layerGroup([temporaryLayer]);
+					temporaryLayerGroup = L.featureGroup([temporaryLayer]);
 					temporaryLayerGroup.addTo(theMap);
 					if(Geodex.map.zoomLock && !Geodex.map.panLock) {
 						var currentExtent = theMap.getBounds();
