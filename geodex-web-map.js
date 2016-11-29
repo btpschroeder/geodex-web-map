@@ -15,6 +15,8 @@
 			};
 		},
 		
+		searchCollapsed: false,
+		
 		//=====================================================//
 		
 		years: {
@@ -142,14 +144,14 @@
 						} else {
 							loc = ': ' + loc;
 						}
-						bookmarksHtml += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span>');
+						bookmarksHtml += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a>');
 						var checkBookmark = oid.toString();
 						if (Geodex.bookmarks.saved.indexOf(checkBookmark) >= 0) {
 							bookmarksHtml += ('<a href="#" class="bookmark-link remove-bookmark" id="remove-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark" aria-hidden="false"></i></a>');
 						} else {
 							bookmarksHtml += ('<a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a>');
 						}
-						bookmarksHtml += '</li>';
+						bookmarksHtml += '<span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span></li>';
 						if ((results.features.length - 1) === i) {
 							bookmarksHtml += '</ul>';
 							$('#saved-records-list').html(bookmarksHtml).promise().done(function(){
@@ -335,14 +337,14 @@
 						loc = ': ' + loc;
 					}
 					if(category === ser  || (category === "No associated series" && ser === null)) {
-						listToReturn += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a><span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span>');
+						listToReturn += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a>');
 						var checkBookmark = oid.toString();
 						if (Geodex.bookmarks.saved.indexOf(checkBookmark) >= 0) {
 							listToReturn += ('<a href="#" class="bookmark-link remove-bookmark" id="remove-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark" aria-hidden="false"></i></a>');
 						} else {
 							listToReturn += ('<a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a>');
 						}
-						listToReturn += '</li>';
+						listToReturn += '<span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span></li>';
 					}
 					
 				});
@@ -770,4 +772,21 @@
 	$('#update-saved-records-list').click(function(e) {
 		e.preventDefault();
 		Geodex.bookmarks.updateRecordsList();
+	});
+	$('.collapse-link').click(function(e) {
+		e.preventDefault();
+		console.log('clicked');
+		if(!Geodex.searchCollapsed) {
+			$('#search-column').addClass('collapsed');
+			$('#map').addClass('expanded');
+			Geodex.searchCollapsed = true;
+			setTimeout(function(){theMap.invalidateSize()}, 100);
+			$(this).html('<i class="fa fa-chevron-down fa-3x" aria-hidden="true"></i>');
+		} else if (Geodex.searchCollapsed) {
+			$('#search-column').removeClass('collapsed');
+			$('#map').removeClass('expanded');
+			Geodex.searchCollapsed = false;
+			setTimeout(function(){theMap.invalidateSize()}, 100);
+			$(this).html('<i class="fa fa-chevron-up fa-3x" aria-hidden="true"></i>');
+		}
 	});

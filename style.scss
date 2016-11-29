@@ -47,6 +47,10 @@ main {
 	padding: 0 1.2em;
 }
 
+.collapse-link {
+	display: none;
+}
+
 /*
 --- Buttons and forms ---
 */
@@ -75,6 +79,7 @@ h1 {
 	text-align: center;
 	text-shadow: 2px 2px 7px rgba(0, 0, 0, 0.5);
 	margin-top: 0;
+	position: relative;
 }
 
 h2 {
@@ -217,6 +222,28 @@ tbody {
 }
 
 /*
+--- Collapse/expand column ---
+*/
+
+.collapsed { // left column
+	height: 10vh !important;
+	overflow-y: hidden !important;
+	
+	* {
+		display: none;
+	}
+	
+	.collapse-link {
+		display: block;
+		position: fixed;
+	}
+}
+
+.expanded { // map
+	height: 90vh !important;
+}
+
+/*
 --- Print and view only table ---
 */
 
@@ -237,16 +264,65 @@ tbody {
 }
 
 /*
---- 991px breakpoint ---
+--- 1518px breakpoint: when some elements need to be smaller, until 'md' kicks in ---
 */
 
-@media screen and (max-width: 991px) {
+@media screen and (max-width: 1518px) and (min-width: 1200px) {
+
+	body {
+		font-size: 13px;
+	}
+
+	.nav>li>a {
+		font-size: 0.9em;
+		padding: 0.4em;
+	}
+	
+	h1 {
+		font-size: 1.75em;
+	}
+	
+	h2 {
+		font-size: 1.33em;
+		font-weight: 500;
+	}
+	
+	h3 {
+		font-size: 1.2em;
+		font-weight: bold;
+	}
+	
+	.list-group {
+
+		.attr-modal-link, .show-map-outline-link, .bookmark-link {
+			display: block;
+			float: left;
+			width: 33%;
+			text-align: center;
+			margin: 0;
+			position: initial;
+			padding: 0.33em;
+			margin-bottom: 0.5em;
+		}
+		
+		.search-result {
+			font-size: 1.1em;
+		}
+
+	}
+
+}
+
+/*
+--- 1199px breakpoint: bootstrap 'md' ---
+*/
+
+@media screen and (max-width: 1199px) {
 
 	
 	#search-column {
-		height: 50vh;
+		height: 100vh;
 		overflow: auto;
-		border: 3px solid #ccc;
 		padding: 1em;
 		
 		h1 {
@@ -256,7 +332,8 @@ tbody {
 	}
 	
 	#map {
-		height: 50vh;
+		height: 0vh;
+		border: 0;
 	}
 	
 	.outline-control {
@@ -266,4 +343,34 @@ tbody {
 		}
 	}
 	
+	.collapse-link {
+		display: block;
+		position: fixed;
+		top: 0;
+		right: 1em;
+		text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+		color: $gold;
+	}
+
+	.collapse-link:hover {
+		color: $gold;
+	}
+
+	.collapse-link:focus {
+		color: $gold;
+	}
+	
+}
+
+/*
+--- make space for toolbar in iOS vertical ---
+*/
+
+@media screen and (max-width: 1199px) and (orientation:portrait) {
+
+	.expanded {
+		height: 79vh;
+		border-bottom: 11vh solid white !important;
+	}
+
 }

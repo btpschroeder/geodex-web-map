@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <title>Geodex Web Map</title>
         <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
         <link href="leaflet/leaflet.css" rel="stylesheet">
@@ -66,7 +66,8 @@
         <!-- Actual structural (sort of) markup -->
         <main class="container-fluid">
             <div class="row" id="map-row">
-                <section class="col-md-3" id="search-column">
+                <section class="col-lg-3" id="search-column">
+					<a href="#" class="collapse-link"><i class="fa fa-chevron-up fa-3x" aria-hidden="true"></i></a>
                     <h1>AGSL Geodex Web Map</h1>
                     <ul class="nav nav-tabs">
                         <li role="presentation" class="active"><a href="#search-parameters" id="tab-search" data-toggle="tab"><i class="fa fa-search" aria-hidden="true"></i> Search</a></li>
@@ -116,6 +117,7 @@
                                     </label>
                                 </div>
                                 <button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
+								<a href="#" id="test-link">Test link</a>
                             </form>
                         </div>
                         <div role="tabpanel" class="tab-pane fade" id="search-results">
@@ -133,7 +135,7 @@
                         </div>
                     </div>
                 </section>
-                <section class="col-md-9" id="map">
+                <section class="col-lg-9" id="map">
                 </section>
             </div>
         </main>
