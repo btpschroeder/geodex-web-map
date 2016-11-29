@@ -1,17 +1,36 @@
-// variables!
-$red: red;
-$blue: #286090;
+$gold: darken(#ffbd00, 5%);
+$blue: lighten(#1e6e9c, 8%);
+$grey: #aaa;
 
-$hover-color: $red;
-$table-heading: $blue;
+$column-separation-border: 2px solid lighten($gold, 1%); // the border separating the two columns
 
+$primary-button-color: $blue;
+
+/* Set everything to box-sizing: border-box unless specified otherwise */
+html {
+	box-sizing: border-box;
+}
+
+*, *::before, *::after {
+	box-sizing: inherit;
+}
+
+/*
+--- Main page structural elements ---
+ */
+ 
 html, body {
 	height: 100%;
 }
-
+ 
 main {
 	min-height: 100%;
 	height: 100%;
+}
+
+#map {
+	height: 100%;
+	border-left: $column-separation-border;
 }
 
 #map-row {
@@ -21,103 +40,67 @@ main {
 #search-column {
 	max-height: 100%;
 	overflow: auto;
+	padding: 0;
 }
 
-#map {
-	height: 100%;
-	box-sizing: border-box;
-	border-left: 3px solid #bbb;
+.nav-tabs, .tab-content {
+	padding: 0 1.2em;
 }
 
-nav ul {
-	float: right;
+/*
+--- Buttons and forms ---
+*/
+
+.btn-primary {
+	background: $primary-button-color;
+	border: 1px solid darken($primary-button-color, 20%);
+	font-size: 1.15em;
+	text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.45);
 }
+
+.btn-primary:hover {
+	background: darken($primary-button-color, 10%);
+}
+
+/*
+--- Headings ---
+*/
 
 h1 {
-	font-size: 24px;
+	background: lighten($gold, 1%);
+	font-size: 2em;
+	color: white;
+	padding: 0.5em;
+	margin-bottom: 1em;
+	text-align: center;
+	text-shadow: 2px 2px 7px rgba(0, 0, 0, 0.5);
+	margin-top: 0;
 }
 
 h2 {
-	font-size: 18px;
+	font-size: 1.66em;
 }
 
-#search-results {
+/*
+--- Search ---
+*/
 
-	.attr-modal-link, .show-map-outline-link{
-		margin-right: 1em;
-	}
-	
-	.bookmark-link{
-		float: right;
-	}
-	
-}
-
-#update-saved-records-list {
-	margin-bottom: 1em;
-	
-	span{
-		font-size: 0.9em;
-		font-style: italic;
-	}
-}
-
-#no-saved-records {
-	margin: 0;
-}
-
-#saved-records-list {
-
-	padding: 0;
-
-	.attr-modal-link, .show-map-outline-link{
-		margin-right: 1em;
-	}
-	
-	.bookmark-link{
-		float: right;
-	}
-	
-}
-
-thead {
-	font-weight: bold;
-	color: $table-heading;
-	font-size: 1.33em;
-}
-
-tbody {
-	font-size: 0.9em;
-}
-
-.list-group-item:hover{
-	background-color: #f5f5f5;
-}
-
-.btn-group-justified .btn{
-	font-size: 0.9em;
-}
-
-.btn-group-justified i{
-	margin: 0.25em 0 0.5em;
-}
-
-#series-list{
+#series-list {
 	max-width: 100%;
 }
 
-#years-not-in-order{
+#years-not-in-order {
 	display: none;
 }
 
-#series-to-be-searched{
+#series-to-be-searched {
 	width: 100%;
 }
 
-.series-span{
+.series-span {
 	display: block;
 	width: 100%;
-	background-color: #eee;
+	background-color: lighten($gold, 40%);
 	margin-bottom: 0.5em;
 	padding: 0.25em 18px 0.25em 0.5em;
 	position: relative;
@@ -129,9 +112,75 @@ tbody {
 	}
 }
 
-form em{
+form em {
 	font-size: 1em;
 	color: #777; 
+}
+
+/*
+--- Records lists ---
+*/
+
+.list-group {
+
+	.list-group-item {
+		overflow: auto;
+	}
+	
+	.list-group-item:hover{
+		background-color: lighten($grey, 25%);
+	}
+
+	.attr-modal-link, .show-map-outline-link {
+		display: block;
+		float: left;
+		margin-right: 1em;
+	}
+	
+	.bookmark-link {
+		color: darken($gold, 8%);
+		position: absolute;
+		top: 0.66em;
+		right: 1em;
+	}
+	
+	.search-result {
+		float: left;
+	}
+
+}
+
+/*
+--- Saved records & bookmarks
+*/
+
+#update-saved-records-list {
+	font-weight: bold;
+	margin-bottom: 1em;
+	font-size: 1.25em;
+}
+
+#no-saved-records {
+	margin: 0;
+}
+
+#saved-records-list {
+	padding-left: 0;
+}
+
+
+/*
+--- Attribute table ---
+*/
+
+thead {
+	font-weight: bold;
+	color: $blue;
+	font-size: 1.33em;
+}
+
+tbody {
+	font-size: 0.9em;
 }
 
 .null-value{
@@ -139,13 +188,21 @@ form em{
 	font-style: italic;
 }
 
-#export-table thead, #export-table tbody{
-	display: none; 
-}
+/*
+--- Export table ---
+*/
 
 .table {
 	margin-bottom: 0;
 }
+
+#export-table thead, #export-table tbody{
+	display: none; 
+}
+
+/*
+--- Custom controls ---
+*/
 
 .outline-control {
 	background-color: white;
@@ -158,6 +215,10 @@ form em{
 		margin-bottom: 0.5em;
 	}
 }
+
+/*
+--- Print and view only table ---
+*/
 
 @media print {
 
@@ -174,6 +235,10 @@ form em{
 		display: table-row-group;
 	}
 }
+
+/*
+--- 991px breakpoint ---
+*/
 
 @media screen and (max-width: 991px) {
 
