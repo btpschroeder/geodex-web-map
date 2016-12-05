@@ -170,7 +170,7 @@
 					});
 				});
 			},
-			exportTableAttributes: ['OBJECTID', 'DATE', 'CATLOC'],
+			exportTableAttributes: ['SERIES_TIT', 'DATE', 'CATLOC'],
 			createExportTable: function() {
 				$('#export-table').empty();
 				var exportTableHtml = '<thead><tr>';
@@ -468,8 +468,8 @@
 					$('#current-zoom-level').html(currentZoom);
 				});
 			},
-			outlineColor: 'Red',
-			outlineColorOptions: ['Red', 'Blue', 'Green', 'Purple', 'Brown'],
+			outlineColor: 'Crimson',
+			outlineColorOptions: ['Crimson', 'RoyalBlue', 'Yellow', 'LimeGreen', 'Orchid'],
 			addOutlineControl: function() {
 				var outlineControl = L.Control.extend({
 					options: {
@@ -513,8 +513,8 @@
 				});
 			},
 			panZoomOptions: [
-				{label: 'Pan to outline if outside extent', zoomlock: true, panlock: false},
 				{label: 'Pan and zoom to outline', zoomlock: false, panlock: false},
+				{label: 'Pan to outline if outside extent', zoomlock: true, panlock: false},
 				{label: 'No automatic panning or zooming', zoomlock: true, panlock: true}
 				],
 			removeFeatureOutline: function() {
@@ -735,6 +735,16 @@
 			}
 		}
 	}
+
+
+/////////////////////////////////////////////////////////
+/*
+--- want to edit something above without changing the actual Geodex object?
+feel free to put it here! just make sure it comes BEFORE Geodex.initialize();
+e.g. Geodex.map.outlineColorOptions = ['Red', 'Blue', 'Yellow'];
+see documentation on the H: drive for more information ---	
+*/
+/////////////////////////////////////////////////////////
 
 /*
 --- set everything up! ---

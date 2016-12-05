@@ -73,6 +73,7 @@
                         <li role="presentation" class="active"><a href="#search-parameters" id="tab-search" data-toggle="tab"><i class="fa fa-search" aria-hidden="true"></i> Search</a></li>
                         <li role="presentation"><a href="#search-results" id="tab-results" data-toggle="tab"><i class="fa fa-list" aria-hidden="true"></i> Results (<span id="num-results">0</span>)</a></li>
                         <li role="presentation"><a href="#bookmarks" id="tab-saved" data-toggle="tab"><i class="fa fa-bookmark" aria-hidden="true"></i> Saved (<span id="num-bookmarked">0</span>)</a></li>
+						<li role="presentation"><a href="#help" id="tab-saved" data-toggle="tab"><i class="fa fa-question-circle" aria-hidden="true"></i> Help</a></li>
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" id="search-parameters" class="tab-pane fade in active">
@@ -133,6 +134,60 @@
 							<!-- this table is hidden from the user unless they're printing! -->
 							<table id="export-table" class="table table-bordered table-condensed"></table>
                         </div>
+						<div role="tabpanel" class="tab-pane fade" id="help">
+							<h2>Geodex Help</h2>
+							<!-- begin help accordion -->
+								<div class="panel-group" id="help-accordion" role="tablist" aria-multiselectable="true">
+									<div class="panel panel-default">
+										<div class="panel-heading" role="tab" id="headingOne">
+											<h4 class="panel-title">
+												<a role="button" data-toggle="collapse" data-parent="#help-accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+												About This Application
+												</a>
+											</h4>
+										</div>
+										<div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+											<div class="panel-body">
+												<p>The AGSL Geodex Web Map allows library patrons and staff allows users to search for maps in a series that have been recorded in the library's extensive Geodex catalogue. Users may search by geographic location, series, date, or a combination of all of these.</p>
+												<p>If you require any assistance beyond the scope of this help section, please <a href="https://uwm.edu/libraries/agsl/visit/">visit us in person</a>, call us at <a href="tel:+14142296282">(414) 229-6282</a> or e-mail <a href="mailto:gisdata@uwm.edu">gisdata@uwm.edu</a>.</p>
+											</div>
+										</div>
+									</div>
+									<div class="panel panel-default">
+										<div class="panel-heading" role="tab" id="headingTwo">
+											<h4 class="panel-title">
+												<a role="button" data-toggle="collapse" data-parent="#help-accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+												Searching for Records
+												</a>
+											</h4>
+										</div>
+										<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+											<div class="panel-body">
+												<p>On the <strong><i class="fa fa-search" aria-hidden="true"></i> Search</strong> tab, you may search for records based on a variety of parameters.</p>
+												<p>The <strong>Extent Search Type</strong> refers to the map on this page. Pan and zoom the map to your preferred search area, and choose whether you wish to search for records that <em>intersect</em> the current view&mdash;they may not be entirely located in your current extent&mdash;or records that <em>are located entirely within</em> your current view.</p>
+												<p>After clicking <strong>Search Geodex</strong> button, you will be taken to a list of search results. If there are too many records to comfortably sort through, you may want to change your search and reduce the year range or geographic search area.</p>
+												<p>Click on the <i class="fa fa-map" aria-hidden="true"></i> map icon next to any record to display its boundaries on the map. You may wish to adjust the outline color or automatic pan settings located at the bottom left corner of the map pane.</p>
+											</div>
+										</div>
+									</div>
+									<div class="panel panel-default">
+										<div class="panel-heading" role="tab" id="headingThree">
+											<h4 class="panel-title">
+												<a role="button" data-toggle="collapse" data-parent="#help-accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+												Saving Records
+												</a>
+											</h4>
+										</div>
+										<div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+											<div class="panel-body">
+												<p>When searching, you may come across records that you wish to reference later. Click on the <i class="fa fa-bookmark-o" aria-hidden="false"></i> bookmark icon next to a record to add it to your list of saved records.</p>
+												<p>These records can be referenced in the <strong><i class="fa fa-bookmark" aria-hidden="true"></i> Saved</strong> tab. After clicking <strong>Update saved records list</strong>&mdash;there may be a few seconds' delay&mdash;your list of saved records will appear, along with options to export or print the list. This may be useful if, for instance, you wish to bring the list to the AGS Library to assist with your research.</p>
+											</div>
+										</div>
+									</div>
+								</div>
+							<!-- end help accordion -->
+						</div>
                     </div>
                 </section>
                 <section class="col-lg-9" id="map">

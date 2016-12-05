@@ -319,6 +319,18 @@ tbody {
 
 @media screen and (max-width: 1199px) {
 
+	#map {
+		height: 50vh;
+	}
+	
+	#search-column {
+		height: 50vh;
+	}
+
+}
+
+@media screen and (max-width: 1199px) and (max-device-width: 480px) { // mobile devices only
+
 	
 	#search-column {
 		height: 100vh;
@@ -366,7 +378,7 @@ tbody {
 --- make space for toolbar in iOS vertical ---
 */
 
-@media screen and (max-width: 1199px) and (orientation:portrait) {
+@media screen and (max-width: 1199px) and (orientation:portrait) and (max-device-width: 480px) {
 
 	.expanded {
 		height: 79vh;
