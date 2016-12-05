@@ -783,20 +783,3 @@ see documentation on the H: drive for more information ---
 		e.preventDefault();
 		Geodex.bookmarks.updateRecordsList();
 	});
-	$('.collapse-link').click(function(e) {
-		e.preventDefault();
-		console.log('clicked');
-		if(!Geodex.searchCollapsed) {
-			$('#search-column').addClass('collapsed');
-			$('#map').addClass('expanded');
-			Geodex.searchCollapsed = true;
-			setTimeout(function(){theMap.invalidateSize()}, 100);
-			$(this).html('<i class="fa fa-chevron-down fa-3x" aria-hidden="true"></i>');
-		} else if (Geodex.searchCollapsed) {
-			$('#search-column').removeClass('collapsed');
-			$('#map').removeClass('expanded');
-			Geodex.searchCollapsed = false;
-			setTimeout(function(){theMap.invalidateSize()}, 100);
-			$(this).html('<i class="fa fa-chevron-up fa-3x" aria-hidden="true"></i>');
-		}
-	});
