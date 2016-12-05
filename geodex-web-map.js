@@ -273,8 +273,17 @@
 					url: Geodex.map.service
 				});
 				if ($('#search-intersect').prop('checked')) {
-					search.intersects(queryBounds)
-					.where(sql);
+					if ($('#exclude-large-maps').prop('checked')) {
+						// trying to figure out what to do here.......
+						console.log(queryBounds);
+						var queryBoundsPad = queryBounds.pad(1);
+						console.log(queryBoundsPad);
+						search.within(queryBoundsPad)
+						.where(sql);
+					} else {
+						search.intersects(queryBounds)
+						.where(sql);
+					}
 				} else if ($('#search-within').prop('checked')) {
 					search.within(queryBounds)
 					.where(sql);
@@ -453,7 +462,7 @@
 				}
 			},
 			hasSearchResultOutline: false,
-			zoomLock: true,
+			zoomLock: false,
 			panLock: false,
 			initialize: function(){
 				theMap = L.map('map')
@@ -769,7 +778,7 @@ see documentation on the H: drive for more information ---
 	});
 	$('#series-list').change(function() {
 		var i = $(this).val();
-		Geodex.search.addSeries(i)
+		Geodex.search.addSeries(i);
 	});
 	$('#search-geodex-button').click(function(e) {
 		e.preventDefault();
@@ -782,4 +791,12 @@ see documentation on the H: drive for more information ---
 	$('#update-saved-records-list').click(function(e) {
 		e.preventDefault();
 		Geodex.bookmarks.updateRecordsList();
+	});
+	$('.extent-radio').click(function() { // only show "Exclude large maps relative to..." when extent search type is intersect
+		if($('#search-intersect').prop('checked')) {
+			$('#exclude-large-area-toggle').show(300);
+		} else {
+			$('#exclude-large-maps').prop('checked', false)
+			$('#exclude-large-area-toggle').hide(300);
+		}
 	});
