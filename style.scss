@@ -51,6 +51,10 @@ main {
 	display: none;
 }
 
+#toggle-pane-link {
+	display: none;
+}
+
 /*
 --- Buttons and forms ---
 */
@@ -268,14 +272,22 @@ tbody {
 }
 
 /*
+--- 1800px breakpoint: adjust nav tabs display ---
+*/
+
+@media screen and (max-width: 1800px) {
+	
+	.nav-tabs i {
+		display: none;
+	}
+	
+}
+
+/*
 --- 1518px breakpoint: when some elements need to be smaller, until 'md' kicks in ---
 */
 
 @media screen and (max-width: 1518px) and (min-width: 1200px) {
-
-	body {
-		font-size: 13px;
-	}
 
 	.nav>li>a {
 		font-size: 0.9em;
@@ -323,12 +335,46 @@ tbody {
 
 @media screen and (max-width: 1199px) {
 
+	$toggleHeight: 7vh;
+
 	#map {
-		height: 50vh;
+		display: none;
+		height: (100vh - $toggleHeight);
+		margin-top: $toggleHeight;
+		border: 0;
 	}
 	
 	#search-column {
-		height: 50vh;
+		height: (100vh - $toggleHeight);
+		margin-top: $toggleHeight;
+	}
+	
+	.nav-tabs {
+		margin-top: 1em;
+	}
+	
+	h1 {
+		display: none;
+	}
+	
+	#toggle-pane-link {
+		display: block;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: $toggleHeight;
+		background: fuchsia;
+		text-align: center;
+		background: $gold;
+		color: white;
+		font-size: ($toggleHeight - 3);
+		text-decoration: none;
+		padding-top: ($toggleHeight - ($toggleHeight - 1));
+	}
+	
+	.outline-control {
+		display: none;
 	}
 
 }

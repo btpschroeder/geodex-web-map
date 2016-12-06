@@ -792,11 +792,29 @@ see documentation on the H: drive for more information ---
 		e.preventDefault();
 		Geodex.bookmarks.updateRecordsList();
 	});
-	$('.extent-radio').click(function() { // only show "Exclude large maps relative to..." when extent search type is intersect
+	// only show "Exclude large maps relative to..." when extent search type is intersect
+	$('.extent-radio').click(function() {
 		if($('#search-intersect').prop('checked')) {
 			$('#exclude-large-area-toggle').show(300);
 		} else {
 			$('#exclude-large-maps').prop('checked', false)
 			$('#exclude-large-area-toggle').hide(300);
+		}
+	});
+	$('#toggle-pane-link').click(function() {
+		var animationOptions = {
+			duration: 400,
+			easing: 'linear'
+		}
+		if($('#map').is(':visible')) {
+			$(this).html('Show map');
+			$('#map').hide(animationOptions);
+			$('#search-column').show(animationOptions);
+		} else {
+			$(this).html('Show search panes');
+			$('#search-column').hide(animationOptions);
+			$('#map').show(animationOptions).promise().done(function() {
+				theMap.invalidateSize(false);
+			});
 		}
 	});
