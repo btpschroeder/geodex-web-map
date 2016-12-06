@@ -24,7 +24,7 @@
 			max: new Date().getFullYear(), // maximum year for the "years" dropdown (grabbed dynamically)
 			
 			// populate drop-downs with all years between min and max
-			populate: function () {
+			populate: function() {
 				var dropdownYearsList;
 				for (var i = this.min; i <= this.max; i++){
 					dropdownYearsList += ('<option value="' + i + '" id="' + i +'">' + i + '</option>');
@@ -34,8 +34,8 @@
 				$('#years-to #' + this.max).prop('selected', true);
 			},
 			
-			// check if user's year inputs are a valid year range
-			validate: function () { // when user selects a year, let her know if date range is invalid
+			// when user selects a year, let her know if date range is invalid
+			validate: function() {
 				var fromYear = $('#years-from').val();
 				var toYear = $('#years-to').val();
 				if (fromYear > toYear) {
@@ -46,7 +46,7 @@
 			},
 			
 			// return year dropdowns to default at user's request
-			toDefault: function () { // when user clicks "reset years" link, go back to default date range (min to max)
+			toDefault: function() {
 				$('#years-from option:first').prop('selected', true);
 				$('#years-to option:last').prop('selected', true);
 				$('#years-not-in-order').hide(300);
@@ -67,7 +67,7 @@
 			ifNull: 'No associated series', // label for records in results with no series
 			
 			// this method will populate Geodex.series.array; see https://github.com/Esri/esri-leaflet/issues/880
-			getAll: function () {
+			getAll: function() {
 				query = L.esri.query({
 					url: Geodex.map.service
 				})
@@ -80,9 +80,9 @@
 						if (v.properties[Geodex.series.field] !== null){
 							Geodex.series.array.push(v.properties[Geodex.series.field]);
 						}
-						if (i === results.features.length - 1){
-							Geodex.series.array.sort();
-							Geodex.series.populate();
+						if (i === results.features.length - 1){ // if this is the last series obtained from the Map Service...
+							Geodex.series.array.sort(); // ...sort the list into alphabetical order...
+							Geodex.series.populate(); // ...and populate the drop-down
 						}
 					});
 				});
@@ -180,7 +180,7 @@
 							$('#saved-records-list').html(bookmarksHtml).promise().done(function(){
 								$('.show-map-outline-link').off();
 								$('.show-map-outline-link').click(function(){
-									Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''))
+									Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''));
 								});
 								$('.bookmark-link').click(function() {
 									Geodex.bookmarks.bookmarkLinkClick(this);
@@ -241,7 +241,10 @@
 		//=====================================================//
 		
 		search : { // all of the search options available to the user
-			series: [],
+		
+			series: [], // all of the series the user wishes to search
+			
+			// user adds a series to their seach parameters
 			addSeries: function(i) {
 				if (($.inArray(Geodex.series.array[i], Geodex.search.series)) === -1) {
 					Geodex.search.series.push(Geodex.series.array[i])
@@ -255,11 +258,15 @@
 					});
 				};
 			},
+			
+			// user removes a series from their seach parameters
 			removeSeries: function(p, i) {
 				var index = this.series.indexOf(Geodex.series.array[i]);
 				this.series.splice(index, 1);
 				$(p).remove();
 			},
+			
+			// create the sql query used for searching (based on user search parameters)
 			sql: function() {
 				// look at years dropdown to determine date range
 				var fromThisYear = $('#years-from').val();
@@ -281,6 +288,8 @@
 				console.log(query);
 				return query;
 			},
+			
+			// perform search
 			go: function() {
 				var geoSearch = true;
 				if ($('#no-search-extent').prop('checked')) {
@@ -318,6 +327,8 @@
 					Geodex.search.displayResults(results.features);
 				});
 			},
+			
+			// dynamically display search results in an organized list
 			displayResults: function(s) {
 				$('#num-results').html(s.length);
 				if (s.length === 1000) {
@@ -356,6 +367,8 @@
 					$('#tab-results').click();
 				});
 			},
+			
+			// helps displayResults make an organized list
 			makeResultsList: function(category, s) {
 				var listToReturn = '';
 				$.each(s, function(i, v){
@@ -383,12 +396,16 @@
 				});
 				return listToReturn;
 			},
+			
+			// let the user know if their search has too many or almost too many results
 			alerts: {
 				maxResults: 1000,
 				manyResults: 100, // triggers the "you may want to edit your search" alert
 				tooMany: ('<div class="alert alert-danger" role="alert"><strong>Your search returned too many results. Only the first 1000 will be displayed below.</strong> Adjust your search parameters to return more specific records.</div>'),
 				almostTooMany: ('<div class="alert alert-warning" role="alert"><strong>Your search returned more than 100 results.</strong> All of them are displayed below. You may wish to adjust your search parameters to return more specific records.</div>')
 			},
+			
+			// if user clicks the info icon next to a record, bring up attribute table in modal
 			getAttributeTable: function(linkClicked) {
 				var featureToLookup = ($(linkClicked).attr('id')).replace('info-', '');
 				var attrQuery = L.esri.query({
@@ -555,6 +572,14 @@
 				Geodex.map.hasSearchResultOutline = false;
 			},
 			showFeatureOutline: function(featureId){
+				var windowWidth = $(window).width();
+				if (windowWidth < 1200) {
+					$('#toggle-pane-link').html('Show search panes');
+					$('#search-column').hide(300);
+					$('#map').show(300).promise().done(function() {
+					theMap.invalidateSize(true); // Leaflet method to account for dynamic map size change
+					});
+				}
 				if (Geodex.map.hasSearchResultOutline) {
 					Geodex.map.removeFeatureOutline();
 				}
@@ -772,10 +797,10 @@
 
 /////////////////////////////////////////////////////////
 /*
---- want to edit something above without changing the actual Geodex object?
+want to edit something above without changing the actual Geodex object?
 feel free to put it here! just make sure it comes BEFORE Geodex.initialize();
 e.g. Geodex.map.outlineColorOptions = ['Red', 'Blue', 'Yellow'];
-see documentation on the H: drive for more information ---	
+see documentation on the H: drive for more information
 */
 /////////////////////////////////////////////////////////
 
@@ -783,7 +808,6 @@ see documentation on the H: drive for more information ---
 --- set everything up! ---
 */
 	Geodex.initialize();
-	
 
 /*
 --- default global event listeners ---
@@ -844,7 +868,7 @@ see documentation on the H: drive for more information ---
 			duration: 275,
 			easing: 'linear'
 		}
-		if($('#map').is(':visible')) {
+		if($('#map').is(':visible')) { // is the #map div currently visible?
 			$(this).html('Show map');
 			$('#map').hide(animationOptions);
 			$('#search-column').show(animationOptions);
@@ -852,7 +876,7 @@ see documentation on the H: drive for more information ---
 			$(this).html('Show search panes');
 			$('#search-column').hide(animationOptions);
 			$('#map').show(animationOptions).promise().done(function() {
-				theMap.invalidateSize(false);
+				theMap.invalidateSize(false); // Leaflet method to account for dynamic map size change
 			});
 		}
 	});
