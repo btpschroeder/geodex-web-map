@@ -6,23 +6,25 @@
 		
 		initialize: function() {
 			var theMap; // has to be declared here because of all the methods that use it
-			this.vocab.defineAttributes();
-			this.years.populate();
-			this.series.getAll();
-			this.map.initialize();
-			String.prototype.replaceAll = function(target, replacement) { // needed to get rid of all apostrophes from search results
+			this.vocab.defineAttributes(); // get all of the attribute vocabulary
+			this.years.populate(); // populate the "years" drop-downs dynamically
+			this.series.getAll(); // populate the "series" drop-down dynamically
+			this.map.initialize(); // initialize the map and run all functions that entails
+			String.prototype.replaceAll = function(target, replacement) { // function needed to get rid of all apostrophes from search results
 				return this.split(target).join(replacement);
 			};
 		},
 		
-		searchCollapsed: false,
-		
 		//=====================================================//
 		
 		years: {
+			
 			min: 1829, // minimum year for the "years" dropdown
-			max: new Date().getFullYear(), // maximum year for the "years" dropdown
-			populate: function () { // method to populate drop-downs with all years between min and max
+			
+			max: new Date().getFullYear(), // maximum year for the "years" dropdown (grabbed dynamically)
+			
+			// populate drop-downs with all years between min and max
+			populate: function () {
 				var dropdownYearsList;
 				for (var i = this.min; i <= this.max; i++){
 					dropdownYearsList += ('<option value="' + i + '" id="' + i +'">' + i + '</option>');
@@ -31,6 +33,8 @@
 				$('#years-to').html(dropdownYearsList);
 				$('#years-to #' + this.max).prop('selected', true);
 			},
+			
+			// check if user's year inputs are a valid year range
 			validate: function () { // when user selects a year, let her know if date range is invalid
 				var fromYear = $('#years-from').val();
 				var toYear = $('#years-to').val();
@@ -40,20 +44,30 @@
 					$('#years-not-in-order').hide();
 				}
 			},
+			
+			// return year dropdowns to default at user's request
 			toDefault: function () { // when user clicks "reset years" link, go back to default date range (min to max)
 				$('#years-from option:first').prop('selected', true);
 				$('#years-to option:last').prop('selected', true);
-				$('#years-not-in-order').hide();
+				$('#years-not-in-order').hide(300);
 			}
+			
 		},
 		
 		//=====================================================//
 		
 		series: {
+			
 			field: 'SERIES_TIT', // attribute table field name for the series
+			
 			array: [], // array to hold all of the series, populated with fillArray method
-			maximumSeriesLength: 65, // number of characters to display in the series dropdown before cutting off
-			getAll: function () { // this method will populate Geodex.series.array; see https://github.com/Esri/esri-leaflet/issues/880
+			
+			maximumSeriesLength: 65, // number of characters to display in the series dropdown before cutting off name
+			
+			ifNull: 'No associated series', // label for records in results with no series
+			
+			// this method will populate Geodex.series.array; see https://github.com/Esri/esri-leaflet/issues/880
+			getAll: function () {
 				query = L.esri.query({
 					url: Geodex.map.service
 				})
@@ -73,10 +87,12 @@
 					});
 				});
 			},
+			
+			// once all of the series have been gotten from Geodex.series.getAll, populate dropdown with this function
 			populate: function() { // populate the series drop-down (to be done after getAll)
 				var seriesHtml = '<option value="series-none" id="series-none">No series selected</option>';
 				$.each(Geodex.series.array, function (i, v){
-					if (v.length >= Geodex.series.maximumSeriesLength) {
+					if (v.length >= Geodex.series.maximumSeriesLength) { // cut off series name if too long (see Geodex.series.maximumSeriesLength)
 						seriesHtml += ('<option value="' + i + '" id="series-' + i +'">' + (v).substring(0, Geodex.series.maximumSeriesLength) + '...</option>');
 					} else {
 						seriesHtml += ('<option value="' + i + '" id="series-' + i +'">' + v + '</option>');
@@ -86,14 +102,19 @@
 				$('#series-list').on('click', function(){
 					$('#series-list option:first').prop('disabled', true);
 				});
-			},
-			ifNull: 'No associated series'
+			}
+
 		},
 		
 		//=====================================================//
 		
 		bookmarks : {
-			saved: [],
+			
+			saved: [], // an array to store all of the user's saved records
+			
+			exportTableAttributes: ['SERIES_TIT', 'DATE', 'CATLOC'], // attribute fields that will show on csv export and printed list
+			
+			// if user clicks "bookmark" icon link, add or remove record from saved list (determined by link class)
 			bookmarkLinkClick: function(linkClicked){
 				var thisIsAddLink = $(linkClicked).hasClass('add-bookmark');
 				if(thisIsAddLink) {
@@ -118,6 +139,8 @@
 					$('#num-bookmarked').html(Geodex.bookmarks.saved.length);
 				};
 			},
+			
+			// update the list of saved records per user's request
 			updateRecordsList: function() {
 				this.createExportTable();
 				var bookmarksHtml = '<ul class="list-group">';
@@ -170,7 +193,8 @@
 					});
 				});
 			},
-			exportTableAttributes: ['SERIES_TIT', 'DATE', 'CATLOC'],
+
+			// dynamically update the export table, used for the csv export and printed table
 			createExportTable: function() {
 				$('#export-table').empty();
 				var exportTableHtml = '<thead><tr>';
@@ -765,33 +789,44 @@ see documentation on the H: drive for more information ---
 --- default global event listeners ---
 */
 
+	// when the user changes either year drop-down, check if user has valid year range
 	$('#years-from').change(function() {
 		Geodex.years.validate();
 	});
-	
 	$('#years-to').change(function() {
 		Geodex.years.validate();
 	});
+	
+	// "Reset years" link
 	$('#reset-years').click(function(e) {
 		e.preventDefault();
 		Geodex.years.toDefault();
 	});
+	
+	// when user selects a series from drop-down, add it to their search paramters
 	$('#series-list').change(function() {
 		var i = $(this).val();
 		Geodex.search.addSeries(i);
 	});
+	
+	// user clicks "Search Geodex"
 	$('#search-geodex-button').click(function(e) {
 		e.preventDefault();
 		Geodex.search.go();
 	});
+	
+	// when attribute modal is closed, empty table completely (in anticipation of next record attribute table)
 	$('#attrModal').on('hide.bs.modal', function() {
 		$('#attr-table-1>tbody').empty();
 		$('#attr-table-2>tbody').empty();
 	});
+	
+	// user clicks "Update saved records link"
 	$('#update-saved-records-list').click(function(e) {
 		e.preventDefault();
 		Geodex.bookmarks.updateRecordsList();
 	});
+	
 	// only show "Exclude large maps relative to..." when extent search type is intersect
 	$('.extent-radio').click(function() {
 		if($('#search-intersect').prop('checked')) {
@@ -801,9 +836,12 @@ see documentation on the H: drive for more information ---
 			$('#exclude-large-area-toggle').hide(300);
 		}
 	});
-	$('#toggle-pane-link').click(function() {
+	
+	// toggle link on the top of the screen in small viewports
+	$('#toggle-pane-link').click(function(e) {
+		e.preventDefault();
 		var animationOptions = {
-			duration: 400,
+			duration: 275,
 			easing: 'linear'
 		}
 		if($('#map').is(':visible')) {
@@ -816,5 +854,15 @@ see documentation on the H: drive for more information ---
 			$('#map').show(animationOptions).promise().done(function() {
 				theMap.invalidateSize(false);
 			});
+		}
+	});
+	
+	// if user resizes window, check if #map and #search-column need to be re-loaded
+	// e.g. if user switches from medium viewport to large one
+	$(window).resize(function() {
+		var windowWidth = $(window).width();
+		if(windowWidth > 1199) {
+			$('#map').show();
+			$('#search-column').show();
 		}
 	});
