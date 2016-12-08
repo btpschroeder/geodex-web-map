@@ -307,16 +307,12 @@
 				});
 				if ($('#search-intersect').prop('checked')) {
 					if ($('#exclude-large-maps').prop('checked')) {
-						// trying to figure out what to do here.......
-						console.log(queryBounds);
 						var queryBoundsPad = queryBounds.pad(1);
-						console.log(queryBoundsPad);
-						search.within(queryBoundsPad)
-						.where(sql);
+						search.within(queryBoundsPad).intersects(queryBounds);
 					} else {
-						search.intersects(queryBounds)
-						.where(sql);
+						search.intersects(queryBounds);
 					}
+					search.where(sql);
 				} else if ($('#search-within').prop('checked')) {
 					search.within(queryBounds)
 					.where(sql);
@@ -589,7 +585,7 @@
 				.where('"OBJECTID" = '+ featureId)
 				.run(function(error, results, response){
 					var thisFeaturesGeometry = results.features[0].geometry.coordinates[0];
-					for (i = 0; i < thisFeaturesGeometry.length; i++) {
+					for (var i = 0; i < thisFeaturesGeometry.length; i++) {
 						thisFeaturesGeometry[i].reverse();
 					}
 					temporaryLayer = L.polygon(thisFeaturesGeometry, {color: Geodex.map.outlineColor});
