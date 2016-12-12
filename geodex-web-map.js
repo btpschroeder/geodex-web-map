@@ -306,13 +306,8 @@
 					url: Geodex.map.service
 				});
 				if ($('#search-intersect').prop('checked')) {
-					if ($('#exclude-large-maps').prop('checked')) {
-						var queryBoundsPad = queryBounds.pad(1);
-						search.within(queryBoundsPad).intersects(queryBounds);
-					} else {
-						search.intersects(queryBounds);
-					}
-					search.where(sql);
+					search.intersects(queryBounds)
+					.where(sql);
 				} else if ($('#search-within').prop('checked')) {
 					search.within(queryBounds)
 					.where(sql);
@@ -320,7 +315,26 @@
 					search.where(sql);
 				}
 				search.run(function(error, results, response) {
-					Geodex.search.displayResults(results.features);
+					if($('#exclude-large-maps').prop('checked')) {
+						// if user is searching with intersect, she has the option to exclude large maps
+						// first thing to do: gather objectids of all results from the first query
+						var objectids = [];
+						$.each(results.features, function(i, v) {
+							objectids.push(v.id);
+						});
+						// then run a second query, returning only results from the 1st query that also match this second one
+						var largerArea = queryBounds.pad(0.5);
+						excludeQuery = L.esri.query({
+							url: Geodex.map.service
+						});
+						excludeQuery.within(largerArea);
+						excludeQuery.featureIds(objectids);
+						excludeQuery.run(function (error2, results2, response2) {
+							Geodex.search.displayResults(results2.features);
+						});
+					} else {
+						Geodex.search.displayResults(results.features);
+					}
 				});
 			},
 			
