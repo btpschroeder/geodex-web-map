@@ -460,21 +460,27 @@
 		
 		//=====================================================//
 		
-		map: {
+		map: { // all of the stuff related to the map itself -- most of the Leaflet stuff will be here
+			// url to map service
 			service: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0',
+			// adds Esri Leaflet geocoder (through plug-in)
 			addGeocoder: function() {
 				var geocoderControl = L.esri.Geocoding.geosearch();
 				geocoderControl.addTo(theMap);
 			},
+			// when user first loads the page, the map is set to this view
 			defaultView: {
 				coordinates: [43.380099, -91.252441],
 				zoom: 4
 			},
+			// these need to be kept in tact for feature querying to work properly
 			maxBounds: [[-180, -180], [180, 180]],
+			// minimum and maximum zoom levels
 			zoom: {
 				min: 4,
 				max: 19
 			},
+			// an object containing all of the basemaps, to be cycled through dynamically
 			basemaps: {
 				defaultBasemap: 'Esri World Topographic Map',
 				data: [
@@ -499,6 +505,7 @@
 						attr: 'Basemap &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 					}
 				],
+				// load all of the basemaps dynamically!
 				load: function() {
 					var basemapsObject = {};
 					$.each(Geodex.map.basemaps.data, function(i, v){
@@ -512,9 +519,13 @@
 					var basemapsControl = L.control.layers(basemapsObject).addTo(theMap);
 				}
 			},
+			// is a search outline currently visible on the map?
 			hasSearchResultOutline: false,
+			// does the user want to disable auto-zoom?
 			zoomLock: false,
+			// does the user want to disable auto-pan?
 			panLock: false,
+			// all of the stuff necessary to set up the map
 			initialize: function(){
 				theMap = L.map('map')
 					.setView(Geodex.map.defaultView.coordinates, Geodex.map.defaultView.zoom)
@@ -528,8 +539,11 @@
 					$('#current-zoom-level').html(currentZoom);
 				});
 			},
+			// default outline color
 			outlineColor: 'Crimson',
+			// all possible outline colors
 			outlineColorOptions: ['Crimson', 'RoyalBlue', 'Yellow', 'LimeGreen', 'Orchid'],
+			// function to add custom outline control (sw corner of map frame)
 			addOutlineControl: function() {
 				var outlineControl = L.Control.extend({
 					options: {
@@ -572,15 +586,18 @@
 					Geodex.map.panLock = Geodex.map.panZoomOptions[userOption].panlock;
 				});
 			},
+			// auto-pan options available to the user, available in the custom control
 			panZoomOptions: [
 				{label: 'Pan and zoom to outline', zoomlock: false, panlock: false},
 				{label: 'Pan to outline if outside extent', zoomlock: true, panlock: false},
 				{label: 'No automatic panning or zooming', zoomlock: true, panlock: true}
 				],
+			// function for removing feature outline from the map
 			removeFeatureOutline: function() {
 				temporaryLayerGroup.remove();
 				Geodex.map.hasSearchResultOutline = false;
 			},
+			// when user wants to view a feature outline, query the server and display it
 			showFeatureOutline: function(featureId){
 				var windowWidth = $(window).width();
 				if (windowWidth < 1200) {
@@ -866,7 +883,7 @@ see documentation on the H: drive for more information
 		if($('#search-intersect').prop('checked')) {
 			$('#exclude-large-area-toggle').show(300);
 		} else {
-			$('#exclude-large-maps').prop('checked', false)
+			$('#exclude-large-maps').prop('checked', false);
 			$('#exclude-large-area-toggle').hide(300);
 		}
 	});
