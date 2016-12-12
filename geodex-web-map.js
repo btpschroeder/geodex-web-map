@@ -244,7 +244,7 @@
 		
 			series: [], // all of the series the user wishes to search
 			
-			// user adds a series to their seach parameters
+			// user adds a series to her seach parameters
 			addSeries: function(i) {
 				if (($.inArray(Geodex.series.array[i], Geodex.search.series)) === -1) {
 					Geodex.search.series.push(Geodex.series.array[i])
@@ -259,7 +259,7 @@
 				};
 			},
 			
-			// user removes a series from their seach parameters
+			// user removes a series from her seach parameters
 			removeSeries: function(p, i) {
 				var index = this.series.indexOf(Geodex.series.array[i]);
 				this.series.splice(index, 1);
@@ -407,7 +407,7 @@
 				return listToReturn;
 			},
 			
-			// let the user know if their search has too many or almost too many results
+			// let the user know if her search has too many or almost too many results
 			alerts: {
 				maxResults: 1000,
 				manyResults: 100, // triggers the "you may want to edit your search" alert
@@ -854,7 +854,7 @@ see documentation on the H: drive for more information
 		Geodex.years.toDefault();
 	});
 	
-	// when user selects a series from drop-down, add it to their search paramters
+	// when user selects a series from drop-down, add it to her search paramters
 	$('#series-list').change(function() {
 		var i = $(this).val();
 		Geodex.search.addSeries(i);
