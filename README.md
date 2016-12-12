@@ -1,2 +1,2 @@
 # Geodex Web Map and Search
-Will write more here soon.
+See live version: http://webgis.uwm.edu/agsl/geodex-web-map/
