@@ -127,7 +127,6 @@
 				.fields(this.field);
 				query.params.returnDistinctValues = true;
 				query.run(function(error, results, response) {
-					console.log(results);
 					$.each(results.features, function (i, v){
 						if (v.properties[Geodex.publishers.field] !== null){
 							Geodex.publishers.array.push(v.properties[Geodex.publishers.field]);

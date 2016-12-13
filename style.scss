@@ -87,12 +87,24 @@ h1 {
 }
 
 h2 {
-	font-size: 1.66em;
+	font-size: 1.5em;
 }
 
 /*
 --- Search ---
 */
+
+#search-parameters {
+	
+	h2 {
+		margin-top: 1.833em;
+		margin-bottom: 1em;
+		font-weight: bold;
+		color: darken($gold, 10%);
+		border-bottom: 1px solid lighten($gold, 40%);
+	}
+	
+}
 
 #search-geodex-button {
 	margin-top: 1em;
