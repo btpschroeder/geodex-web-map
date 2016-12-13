@@ -380,8 +380,10 @@
 			go: function() {
 				// collect information about user's current view, and allow her to return to it later
 				Geodex.map.savedBounds = theMap.getBounds();
-				if($('#return-to-search-extent').is(':hidden')) {
+				if($('#return-to-search-extent').is(':hidden') && !$('#no-search-extent').prop('checked')) {
 					$('#return-to-search-extent').show(100);
+				} else if ($('#return-to-search-extent').is(':visible') && $('#no-search-extent').prop('checked')) {
+					$('#return-to-search-extent').hide(100);
 				}
 				$('#return-to-search-extent').click(function(e) {
 					e.preventDefault();
@@ -1027,5 +1029,7 @@ see documentation on the H: drive for more information
 		if(windowWidth > 1199) {
 			$('#map').show();
 			$('#search-column').show();
+		} else {
+			$('#map').hide();
 		}
 	});
