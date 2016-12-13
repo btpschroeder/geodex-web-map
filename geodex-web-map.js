@@ -147,14 +147,7 @@
 				bookmarksQuery = L.esri.query({
 					url: Geodex.map.service
 				})
-				var bookmarksSql = '';
-				$.each(this.saved, function(i, v){
-					bookmarksSql += ('OBJECTID = ' + v)
-					if ((Geodex.bookmarks.saved.length - 1) > i){
-						bookmarksSql += ' OR ';
-					}
-				});
-				bookmarksQuery.where(bookmarksSql);
+				bookmarksQuery.featureIds(Geodex.bookmarks.saved);
 				bookmarksQuery.run(function(error, results, response) {
 					$.each(results.features, function(i, v) {
 						var loc = v.properties.LOCATION;
