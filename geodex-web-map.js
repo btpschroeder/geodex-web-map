@@ -9,6 +9,7 @@
 			this.vocab.defineAttributes(); // get all of the attribute vocabulary
 			this.years.populate(); // populate the "years" drop-downs dynamically
 			this.series.getAll(); // populate the "series" drop-down dynamically
+			this.publishers.getAll(); // populate the "publsihers" drop-down dynamically
 			this.map.initialize(); // initialize the map and run all functions that entails
 			String.prototype.replaceAll = function(target, replacement) { // function needed to get rid of all apostrophes from search results
 				return this.split(target).join(replacement);
@@ -104,6 +105,56 @@
 				});
 			}
 
+		},
+		
+		//=====================================================//
+		
+		publishers: {
+			
+			field: 'PUBLISHER', // attribute table field name for the series
+			
+			array: [], // array to hold all of the series, populated with fillArray method
+			
+			maximumPublishersLength: 65, // number of characters to display in the series dropdown before cutting off name
+			
+			// this method will populate Geodex.publishers.array; see https://github.com/Esri/esri-leaflet/issues/880
+			getAll: function() {
+				query = L.esri.query({
+					url: Geodex.map.service
+				})
+				.where('1=1')
+				.returnGeometry(false)
+				.fields(this.field);
+				query.params.returnDistinctValues = true;
+				query.run(function(error, results, response) {
+					console.log(results);
+					$.each(results.features, function (i, v){
+						if (v.properties[Geodex.publishers.field] !== null){
+							Geodex.publishers.array.push(v.properties[Geodex.publishers.field]);
+						}
+						if (i === results.features.length - 1){ // if this is the last publisher obtained from the Map Service...
+							Geodex.publishers.array.sort(); // ...sort the list into alphabetical order...
+							Geodex.publishers.populate(); // ...and populate the drop-down
+						}
+					});
+				});
+			},
+			
+			populate: function() { // populate the series drop-down (to be done after getAll)
+				var pubHtml = '<option value="publisher-none" id="publisher-none">No publisher selected</option>';
+				$.each(Geodex.publishers.array, function (i, v){
+					if (v.length >= Geodex.publishers.maximumPublishersLength) { // cut off publisher name if too long (see Geodex.publishers.maximumPublishersLength)
+						pubHtml += ('<option value="' + i + '" id="publisher-' + i +'">' + (v).substring(0, Geodex.publishers.maximumPublishersLength) + '...</option>');
+					} else {
+						pubHtml += ('<option value="' + i + '" id="publisher-' + i +'">' + v + '</option>');
+					}
+				});
+				$('#publishers-list').html(pubHtml);
+				$('#publishers-list').on('click', function(){
+					$('#publishers-list option:first').prop('disabled', true);
+				});
+			}
+			
 		},
 		
 		//=====================================================//
@@ -239,6 +290,8 @@
 		
 			series: [], // all of the series the user wishes to search
 			
+			publishers: [], // all of the publishers the user wishes to search
+			
 			// user adds a series to her seach parameters
 			addSeries: function(i) {
 				if (($.inArray(Geodex.series.array[i], Geodex.search.series)) === -1) {
@@ -254,10 +307,32 @@
 				};
 			},
 			
+			// user adds a publisher to her seach parameters
+			addPublisher: function(i) {
+				if (($.inArray(Geodex.publishers.array[i], Geodex.search.publishers)) === -1) {
+					Geodex.search.publishers.push(Geodex.publishers.array[i])
+					$('#publishers-to-be-searched').append('<span class="publisher-span" id="uniquepublisher-' + i + '">' + Geodex.publishers.array[i] + ' <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button></span>');
+					// add event listener for removeSeries
+					$('.publisher-span .close').off();
+					$('.publisher-span .close').click(function(){
+						var par = $(this).parent();
+						var idx = $(par).attr('id').replace('uniquepublisher-', '');
+						Geodex.search.removePublisher(par, idx);
+					});
+				};
+			},
+			
 			// user removes a series from her search parameters
 			removeSeries: function(p, i) {
 				var index = this.series.indexOf(Geodex.series.array[i]);
 				this.series.splice(index, 1);
+				$(p).remove();
+			},
+			
+			// user removes a publisher from her search parameters
+			removePublisher: function(p, i) {
+				var index = this.publishers.indexOf(Geodex.publishers.array[i]);
+				this.publishers.splice(index, 1);
 				$(p).remove();
 			},
 			
@@ -274,6 +349,19 @@
 						var s = v.replaceAll("'", "''");
 						query += ("SERIES_TIT = '" + s + "'");
 						if (i < Geodex.search.series.length - 1) {
+							query += ' OR ';
+						} else {
+							query += ' )';
+						}
+					});
+				}
+				// has the user selected any publishers?
+				if (Geodex.search.publishers.length > 0) {
+					query += ' AND ( ';
+					$.each(Geodex.search.publishers, function(i, v) {
+						var s = v.replaceAll("'", "''");
+						query += ("PUBLISHER = '" + s + "'");
+						if (i < Geodex.search.publishers.length - 1) {
 							query += ' OR ';
 						} else {
 							query += ' )';
@@ -860,6 +948,12 @@ see documentation on the H: drive for more information
 	$('#series-list').change(function() {
 		var i = $(this).val();
 		Geodex.search.addSeries(i);
+	});
+	
+	// when user selects a publisher from drop-down, add it to her search paramters
+	$('#publishers-list').change(function() {
+		var i = $(this).val();
+		Geodex.search.addPublisher(i);
 	});
 	
 	// user clicks "Search Geodex"

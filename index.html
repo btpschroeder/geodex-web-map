@@ -99,6 +99,12 @@
                                         <em>Search will only take the options below into account.</em>
                                     </label>
                                 </div>
+								<div class="checkbox" id="exclude-large-area-toggle">
+                                    <label>
+                                        <input type="checkbox" id="exclude-large-maps" value="exclude-large-maps">
+                                        Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
+                                    </label>
+                                </div>
                                 <h2>Years</h2>
                                 <div class="form-group">
                                     <select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
@@ -106,18 +112,20 @@
                                 <div id="years-not-in-order" class="alert alert-danger" role="alert"><strong>This year range is invalid</strong> and will return no results. <a href="#" id="reset-years">Reset years</a></div>
                                 <h2>Series</h2>
                                 <div class="form-group">
-                                    <p><em>If no series is selected, all of them will be included when searching.</em></p>
+                                    <p><em>If no series are selected, all of them will be included when searching.</em></p>
                                     <select name="series-list" id="series-list" value="series-list">
                                         <option>Loading series list...</option>
                                     </select>
                                 </div>
                                 <div id="series-to-be-searched"></div>
-                                <div class="checkbox" id="exclude-large-area-toggle">
-                                    <label>
-                                        <input type="checkbox" id="exclude-large-maps" value="exclude-large-maps">
-                                        Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
-                                    </label>
+								<h2>Publishers</h2>
+								<div class="form-group">
+                                    <p><em>If no publishers are selected, all of them will be included when searching.</em></p>
+                                    <select name="publishers-list" id="publishers-list" value="publishers-list">
+                                        <option>Loading publisher list...</option>
+                                    </select>
                                 </div>
+                                <div id="publishers-to-be-searched"></div>
                                 <button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
                             </form>
                         </div>
