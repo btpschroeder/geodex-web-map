@@ -99,8 +99,9 @@ h2 {
 	h2 {
 		margin-top: 1.833em;
 		margin-bottom: 1em;
+		padding-bottom: 0.2em;
 		font-weight: bold;
-		color: darken($gold, 10%);
+		color: darken($gold, 12%);
 		border-bottom: 1px solid lighten($gold, 40%);
 	}
 	
@@ -255,6 +256,7 @@ tbody {
 */
 
 .outline-control {
+	font-size: 0.9em;
 	background-color: white;
 	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
 	border-radius: 4px;
@@ -305,6 +307,7 @@ tbody {
 	
 	#export-table tbody {
 		display: table-row-group;
+		width: 100%;
 	}
 }
 

@@ -192,51 +192,53 @@
 			
 			// update the list of saved records per user's request
 			updateRecordsList: function() {
-				this.createExportTable();
-				var bookmarksHtml = '<ul class="list-group">';
-				bookmarksQuery = L.esri.query({
-					url: Geodex.map.service
-				})
-				bookmarksQuery.featureIds(Geodex.bookmarks.saved);
-				bookmarksQuery.run(function(error, results, response) {
-					$.each(results.features, function(i, v) {
-						var loc = v.properties.LOCATION;
-						var date = v.properties.DATE;
-						var rec = v.properties.RECORD;
-						var oid = v.properties.OBJECTID;
-						var ser = v.properties.SERIES_TIT;
-						if (loc === null) {
-							loc = '';
-						} else {
-							loc = ': ' + loc;
-						}
-						bookmarksHtml += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a>');
-						var checkBookmark = oid.toString();
-						if (Geodex.bookmarks.saved.indexOf(checkBookmark) >= 0) {
-							bookmarksHtml += ('<a href="#" class="bookmark-link remove-bookmark" id="remove-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark" aria-hidden="false"></i></a>');
-						} else {
-							bookmarksHtml += ('<a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a>');
-						}
-						bookmarksHtml += '<span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span></li>';
-						if ((results.features.length - 1) === i) {
-							bookmarksHtml += '</ul>';
-							$('#saved-records-list').html(bookmarksHtml).promise().done(function(){
-								$('.show-map-outline-link').off();
-								$('.show-map-outline-link').click(function(){
-									$('.list-group-item').css('background-color', '');
-									$(this).parents('.list-group-item').css('background-color', '#ffffcc');
-									Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''));
-								});
-								$('.bookmark-link').click(function() {
-									Geodex.bookmarks.bookmarkLinkClick(this);
-								});
-								$('.attr-modal-link').click(function() {
-									Geodex.search.getAttributeTable(this);
-								});
-							});
-						}
+				if(Geodex.bookmarks.saved.length > 0) {
+					this.createExportTable();
+					var bookmarksHtml = '<ul class="list-group">';
+					bookmarksQuery = L.esri.query({
+						url: Geodex.map.service
 					});
-				});
+					bookmarksQuery.featureIds(Geodex.bookmarks.saved);
+					bookmarksQuery.run(function(error, results, response) {
+						$.each(results.features, function(i, v) {
+							var loc = v.properties.LOCATION;
+							var date = v.properties.DATE;
+							var rec = v.properties.RECORD;
+							var oid = v.properties.OBJECTID;
+							var ser = v.properties.SERIES_TIT;
+							if (loc === null) {
+								loc = '';
+							} else {
+								loc = ': ' + loc;
+							}
+							bookmarksHtml += ('<li class="list-group-item"><a href="#" class="show-map-outline-link" id="show-outline-' + oid +'"><i class="fa fa-lg fa-map" aria-hidden="true"></i></a><a href="#" class="attr-modal-link" id="info-' + oid + '" data-toggle="modal" data-target="#attrModal"><i class="fa fa-lg fa-info-circle aria-hidden="false"></i></a>');
+							var checkBookmark = oid.toString();
+							if (Geodex.bookmarks.saved.indexOf(checkBookmark) >= 0) {
+								bookmarksHtml += ('<a href="#" class="bookmark-link remove-bookmark" id="remove-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark" aria-hidden="false"></i></a>');
+							} else {
+								bookmarksHtml += ('<a href="#" class="bookmark-link add-bookmark" id="add-bookmark-' + checkBookmark + '"><i class="fa fa-lg fa-bookmark-o" aria-hidden="false"></i></a>');
+							}
+							bookmarksHtml += '<span class="search-result">' + date + ' &ndash; ' + rec + loc + '</span></li>';
+							if ((results.features.length - 1) === i) {
+								bookmarksHtml += '</ul>';
+								$('#saved-records-list').html(bookmarksHtml).promise().done(function(){
+									$('.show-map-outline-link').off();
+									$('.show-map-outline-link').click(function(){
+										$('.list-group-item').css('background-color', '');
+										$(this).parents('.list-group-item').css('background-color', '#ffffcc');
+										Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''));
+									});
+									$('.bookmark-link').click(function() {
+										Geodex.bookmarks.bookmarkLinkClick(this);
+									});
+									$('.attr-modal-link').click(function() {
+										Geodex.search.getAttributeTable(this);
+									});
+								});
+							}
+						});
+					});
+				}
 			},
 
 			// dynamically update the export table, used for the csv export and printed table
