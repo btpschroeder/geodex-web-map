@@ -373,8 +373,21 @@
 				return query;
 			},
 			
+			// user's saved zoom level, which can be referenced later (see go function)
+			savedBounds: 0,
+			
 			// perform search
 			go: function() {
+				// collect information about user's current view, and allow her to return to it later
+				Geodex.map.savedBounds = theMap.getBounds();
+				if($('#return-to-search-extent').is(':hidden')) {
+					$('#return-to-search-extent').show(100);
+				}
+				$('#return-to-search-extent').click(function(e) {
+					e.preventDefault();
+					theMap.fitBounds(Geodex.map.savedBounds);
+				});
+				// actually perform the search
 				var geoSearch = true;
 				if ($('#no-search-extent').prop('checked')) {
 					geoSearch = false;
@@ -663,6 +676,8 @@
 						$('.outline-control').append(panZoomHtml);
 					}
 				});
+				var returnToExtentHtml = '<a href="#" id="return-to-search-extent" style="display:none;">Return to search extent</a>';
+				$('.outline-control').append(returnToExtentHtml);
 				$('#color-control-select').change(function() {
 					Geodex.map.outlineColor = $(this).val();
 					$('#color-control-select').css('border', '2px solid ' + Geodex.map.outlineColor);
