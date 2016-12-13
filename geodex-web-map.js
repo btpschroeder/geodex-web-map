@@ -254,7 +254,7 @@
 				};
 			},
 			
-			// user removes a series from her seach parameters
+			// user removes a series from her search parameters
 			removeSeries: function(p, i) {
 				var index = this.series.indexOf(Geodex.series.array[i]);
 				this.series.splice(index, 1);
@@ -422,7 +422,12 @@
 				attrQuery.run(function(error, results, response){
 					var attr = results.features[0].properties;
 					var attrKeys = Object.keys(attr);
-					$('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD);
+					if (attr.LOCATION === null) {
+						var loc = '';
+					} else {
+						var loc = ': ' + attr.LOCATION;
+					}
+					$('#attrModalLabel').html('<strong>Attributes:</strong> ' + attr.DATE + ' &ndash; ' + attr.RECORD + loc);
 					$.each(attrKeys, function(i, v) {
 						var currentAttribute = v;
 						var currentValue = attr[currentAttribute];
