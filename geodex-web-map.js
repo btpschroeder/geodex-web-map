@@ -180,6 +180,8 @@
 							$('#saved-records-list').html(bookmarksHtml).promise().done(function(){
 								$('.show-map-outline-link').off();
 								$('.show-map-outline-link').click(function(){
+									$('.list-group-item').css('background-color', '');
+									$(this).parents('.list-group-item').css('background-color', '#ffffcc');
 									Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''));
 								});
 								$('.bookmark-link').click(function() {
@@ -366,7 +368,9 @@
 				$('#search-results').html(resultsHtml).promise().done(function(){
 					$('.show-map-outline-link').off();
 					$('.show-map-outline-link').click(function(){
-						Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''))
+						$('.list-group-item').css('background-color', '');
+						$(this).parents('.list-group-item').css('background-color', '#ffffcc');
+						Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''));
 					});
 					$('.bookmark-link').click(function() {
 						Geodex.bookmarks.bookmarkLinkClick(this);
@@ -542,7 +546,7 @@
 			// default outline color
 			outlineColor: 'Crimson',
 			// all possible outline colors
-			outlineColorOptions: ['Crimson', 'RoyalBlue', 'Yellow', 'LimeGreen', 'Orchid'],
+			outlineColorOptions: ['Crimson', 'RoyalBlue', 'Yellow', 'LimeGreen', 'Black'],
 			// function to add custom outline control (sw corner of map frame)
 			addOutlineControl: function() {
 				var outlineControl = L.Control.extend({
