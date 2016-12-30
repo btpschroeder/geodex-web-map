@@ -1,147 +1,156 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <title>Geodex Web Map</title>
-        <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-        <link href="leaflet/leaflet.css" rel="stylesheet">
-        <link href="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.css" rel="stylesheet">
-        <link href="style.css" rel="stylesheet">
-        <script>
-            // whole thing is kaputt in IE without this line
-            document.createElement('main');
-        </script>
-    </head>
-    <body>
-    
-        <!-- Attribute modal -->
-        <div class="modal fade" id="attrModal" tabindex="-1" role="dialog" aria-labelledby="attrModal">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="attrModalLabel"></h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="attr-table-1">
-                                        <thead>
-                                            <tr>
-                                                <td>Attribute</td>
-                                                <td>Value</td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="attr-table-2">
-                                        <thead>
-                                            <tr>
-                                                <td>Attribute</td>
-                                                <td>Value</td>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button id="close-attr-modal" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Actual structural (sort of) markup -->
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<title>Geodex Web Map</title>
+		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link href="leaflet/leaflet.css" rel="stylesheet">
+		<link href="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.css" rel="stylesheet">
+		<link href="style.css" rel="stylesheet">
+		<script>
+			// whole thing is kaputt in IE without this line
+			document.createElement('main');
+		</script>
+	</head>
+	<body>
+	
+		<!-- Attribute modal -->
+		<div class="modal fade" id="attrModal" tabindex="-1" role="dialog" aria-labelledby="attrModal">
+			<div class="modal-dialog modal-lg" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="attrModalLabel"></h4>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<div class="col-md-6">
+								<div class="table-responsive">
+									<table class="table table-hover" id="attr-table-1">
+										<thead>
+											<tr>
+												<td>Attribute</td>
+												<td>Value</td>
+											</tr>
+										</thead>
+										<tbody>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="table-responsive">
+									<table class="table table-hover" id="attr-table-2">
+										<thead>
+											<tr>
+												<td>Attribute</td>
+												<td>Value</td>
+											</tr>
+										</thead>
+										<tbody>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button id="close-attr-modal" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Actual structural (sort of) markup -->
 		<a id="toggle-pane-link" href="#" id="expand-link">Show map</a>
-        <main class="container-fluid">
-            <div class="row" id="map-row">
-                <section class="col-lg-4" id="search-column">
+		<main class="container-fluid">
+			<div class="row" id="map-row">
+				<section class="col-lg-4" id="search-column">
 					<a href="#" class="collapse-link"><i class="fa fa-chevron-up fa-3x" aria-hidden="true"></i></a>
-                    <h1>AGSL Geodex Web Map &mdash; [alpha]</h1>
-                    <ul class="nav nav-tabs">
-                        <li role="presentation" class="active"><a href="#search-parameters" id="tab-search" data-toggle="tab"><i class="fa fa-search" aria-hidden="true"></i> <span class="tab-label">Search</span></a></li>
-                        <li role="presentation"><a href="#search-results" id="tab-results" data-toggle="tab"><i class="fa fa-list" aria-hidden="true"></i> <span class="tab-label">Results</span> (<span id="num-results">0</span>)</a></li>
-                        <li role="presentation"><a href="#bookmarks" id="tab-saved" data-toggle="tab"><i class="fa fa-bookmark" aria-hidden="true"></i> <span class="tab-label">Saved</span> (<span id="num-bookmarked">0</span>)</a></li>
+					<h1>AGSL Geodex Web Map &mdash; α</h1>
+					<ul class="nav nav-tabs">
+						<li role="presentation" class="active"><a href="#search-parameters" id="tab-search" data-toggle="tab"><i class="fa fa-search" aria-hidden="true"></i> <span class="tab-label">Search</span></a></li>
+						<li role="presentation"><a href="#search-results" id="tab-results" data-toggle="tab"><i class="fa fa-list" aria-hidden="true"></i> <span class="tab-label">Results</span> (<span id="num-results">0</span>)</a></li>
+						<li role="presentation"><a href="#bookmarks" id="tab-saved" data-toggle="tab"><i class="fa fa-bookmark" aria-hidden="true"></i> <span class="tab-label">Saved</span> (<span id="num-bookmarked">0</span>)</a></li>
 						<li role="presentation"><a href="#help" id="tab-help" data-toggle="tab"><i class="fa fa-question-circle" aria-hidden="true"></i> <span class="tab-label">Help</span></a></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div role="tabpanel" id="search-parameters" class="tab-pane fade in active">
-                            <form>
-                                <h2>Extent Search Type</h2>
-                                <div class="radio">
-                                    <label>
-                                        <input class="extent-radio" type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
-                                        Records <strong> entirely within</strong> the current extent
-                                    </label>
-                                </div>
-                                <div class="radio">
-                                    <label>
-                                        <input class="extent-radio" type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
-                                        Records <strong>intersecting</strong> the current extent
-                                    </label>
-                                </div>
-                                <div class="radio">
-                                    <label>
-                                        <input class="extent-radio" type="radio" name="search-extent-options" id="no-search-extent" value="no-search-extent">
-                                        Search <strong>without using</strong> the current extent<br />
-                                        <em>Search will only take the options below into account.</em>
-                                    </label>
-                                </div>
+					</ul>
+					<div class="tab-content">
+						<div role="tabpanel" id="search-parameters" class="tab-pane fade in active">
+							<form>
+								<h2>Extent Search Type</h2>
+								<div class="radio">
+									<label>
+										<input class="extent-radio" type="radio" name="search-extent-options" id="search-within" value="search-within" checked>
+										Records <strong> entirely within</strong> the current extent
+									</label>
+								</div>
+								<div class="radio">
+									<label>
+										<input class="extent-radio" type="radio" name="search-extent-options" id="search-intersect" value="search-intersect">
+										Records <strong>intersecting</strong> the current extent
+									</label>
+								</div>
+								<div class="radio">
+									<label>
+										<input class="extent-radio" type="radio" name="search-extent-options" id="no-search-extent" value="no-search-extent">
+										Search <strong>without using</strong> the current extent<br />
+										<em>Search will only take the options below into account.</em>
+									</label>
+								</div>
 								<div class="checkbox" id="exclude-large-area-toggle">
-                                    <label>
-                                        <input type="checkbox" id="exclude-large-maps" value="exclude-large-maps">
-                                        Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
-                                    </label>
-                                </div>
-                                <h2>Years</h2>
-                                <div class="form-group">
-                                    <select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
-                                </div>
-                                <div id="years-not-in-order" class="alert alert-danger" role="alert"><strong>This year range is invalid</strong> and will return no results. <a href="#" id="reset-years">Reset years</a></div>
-                                <h2>Series</h2>
-                                <div class="form-group">
-                                    <p><em>If no series are selected, all of them will be included when searching.</em></p>
-                                    <select name="series-list" id="series-list" value="series-list">
-                                        <option>Loading series list...</option>
-                                    </select>
-                                </div>
-                                <div id="series-to-be-searched"></div>
+									<label>
+										<input type="checkbox" id="exclude-large-maps" value="exclude-large-maps">
+										Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
+									</label>
+								</div>
+								<h2>Years</h2>
+								<div class="form-group">
+									<select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
+								</div>
+								<div id="years-not-in-order" class="alert alert-danger" role="alert"><strong>This year range is invalid</strong> and will return no results. <a href="#" id="reset-years">Reset years</a></div>
+								<h2>Series</h2>
+								<div class="form-group">
+									<p><em>If no series are selected, all of them will be included when searching.</em></p>
+									<select name="series-list" id="series-list" value="series-list">
+										<option>Loading series list...</option>
+									</select>
+								</div>
+								<div id="series-to-be-searched"></div>
 								<h2>Publishers</h2>
 								<div class="form-group">
-                                    <p><em>If no publishers are selected, all of them will be included when searching.</em></p>
-                                    <select name="publishers-list" id="publishers-list" value="publishers-list">
-                                        <option>Loading publisher list...</option>
-                                    </select>
-                                </div>
-                                <div id="publishers-to-be-searched"></div>
-                                <button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
-                            </form>
-                        </div>
-                        <div role="tabpanel" class="tab-pane fade" id="search-results">
-                            <h2>Search Results</h2>
-                            <p>No search results to display.</p>
-                        </div>
-                        <div role="tabpanel" class="tab-pane fade" id="bookmarks">
-                            <h2>Saved Records</h2>
+									<p><em>If no publishers are selected, all of them will be included when searching.</em></p>
+									<select name="publishers-list" id="publishers-list" value="publishers-list">
+										<option>Loading publisher list...</option>
+									</select>
+								</div>
+								<h2>Availability</h2>
+								<div class="form-group">
+									<div class="checkbox" id="agsl-holdings">
+										<label>
+											<input type="checkbox" id="agsl-holdings-option" value="agsl-holdings-option">
+											Only show records available in AGSL holdings
+										</label>
+									</div>
+								</div>
+								<div id="publishers-to-be-searched"></div>
+								<button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
+							</form>
+						</div>
+						<div role="tabpanel" class="tab-pane fade" id="search-results">
+							<h2>Search Results</h2>
+							<p>No search results to display.</p>
+						</div>
+						<div role="tabpanel" class="tab-pane fade" id="bookmarks">
+							<h2>Saved Records</h2>
 							<a id="update-saved-records-list" href="#">Update saved records list</a>
-                            <ul id="saved-records-list">
-                            </ul>
-                            <p id="no-saved-records">You have not bookmarked any records.</p>
+							<ul id="saved-records-list">
+							</ul>
+							<p id="no-saved-records">You have not bookmarked any records.</p>
 							<!-- this table is hidden from the user unless they're printing! -->
 							<table id="export-table" class="table table-bordered table-condensed"></table>
-                        </div>
+						</div>
 						<div role="tabpanel" class="tab-pane fade" id="help">
 							<h2>Geodex Help</h2>
 							<!-- begin help accordion -->
@@ -197,22 +206,22 @@
 								</div>
 							<!-- end help accordion -->
 						</div>
-                    </div>
-                </section>
-                <section class="col-lg-8" id="map">
-                </section>
-            </div>
-        </main>
-        
-        <!-- JavaScript files -->
-        <script src="https://use.fontawesome.com/8a40235401.js"></script>
-        <script src="jquery/jquery-3.1.1.min.js"></script>
-        <script src="bootstrap/js/bootstrap.min.js"></script>
-        <script src="leaflet/leaflet.js"></script>
-        <script src="leaflet/plugins/esri-leaflet/esri-leaflet.js"></script>
-        <script src="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
-        <script src="tableexport/FileSaver.js"></script>
-        <script src="tableexport/TableExport.js"></script>
-        <script src="geodex-web-map.js"></script>
-    </body>
+					</div>
+				</section>
+				<section class="col-lg-8" id="map">
+				</section>
+			</div>
+		</main>
+		
+		<!-- JavaScript files -->
+		<script src="https://use.fontawesome.com/8a40235401.js"></script>
+		<script src="jquery/jquery-3.1.1.min.js"></script>
+		<script src="bootstrap/js/bootstrap.min.js"></script>
+		<script src="leaflet/leaflet.js"></script>
+		<script src="leaflet/plugins/esri-leaflet/esri-leaflet.js"></script>
+		<script src="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
+		<script src="tableexport/FileSaver.js"></script>
+		<script src="tableexport/TableExport.js"></script>
+		<script src="geodex-web-map.js"></script>
+	</body>
 </html>

@@ -11,7 +11,7 @@
 			this.series.getAll(); // populate the "series" drop-down dynamically
 			this.publishers.getAll(); // populate the "publsihers" drop-down dynamically
 			this.map.initialize(); // initialize the map and run all functions that entails
-			String.prototype.replaceAll = function(target, replacement) { // function needed to get rid of all apostrophes from search results
+			String.prototype.replaceAll = function(target, replacement) { // function needed to get rid of all apostrophes from search results (apostrophes break dynamically generated SQL)
 				return this.split(target).join(replacement);
 			};
 		},
@@ -27,21 +27,29 @@
 			// populate drop-downs with all years between min and max
 			populate: function() {
 				var dropdownYearsList;
+				// loop through all years, one at a time, starting with Geodex.years.min and ending with Geodex.years.max
 				for (var i = this.min; i <= this.max; i++){
 					dropdownYearsList += ('<option value="' + i + '" id="' + i +'">' + i + '</option>');
 				}
+				// add the list created in the above loop to the dropdown menus
 				$('#years-from').html(dropdownYearsList);
 				$('#years-to').html(dropdownYearsList);
+				// by default, have the latter dropdown default to the last year (so the default search range is all years)
 				$('#years-to #' + this.max).prop('selected', true);
 			},
 			
 			// when user selects a year, let her know if date range is invalid
 			validate: function() {
+				// variable to hold the user's "from year" dropdown selection
 				var fromYear = $('#years-from').val();
+				// variable to gold the user's "to year" dropdown selection
 				var toYear = $('#years-to').val();
+				// check if the year selection is invalid (e.g. 2005-2001)
 				if (fromYear > toYear) {
+					// if so, show the message informing the user that her year selection is invalid
 					$('#years-not-in-order').show();
 				} else {
+					// otherwise, do not show the message (if the year range is valid)
 					$('#years-not-in-order').hide();
 				}
 			},
@@ -369,6 +377,10 @@
 						}
 					});
 				}
+				// does the user only want records in the AGSL holdings?
+				if($('#agsl-holdings-option').prop('checked')) {
+					query += ' AND HOLD >= 1';
+				}
 				console.log(query);
 				return query;
 			},
@@ -646,9 +658,9 @@
 				});
 			},
 			// default outline color
-			outlineColor: 'Crimson',
+			outlineColor: 'crimson',
 			// all possible outline colors
-			outlineColorOptions: ['Crimson', 'RoyalBlue', 'Yellow', 'LimeGreen', 'Black'],
+			outlineColorOptions: ['crimson', 'royalblue', 'yellow', 'limegreen', 'black'],
 			// function to add custom outline control (sw corner of map frame)
 			addOutlineControl: function() {
 				var outlineControl = L.Control.extend({
@@ -928,16 +940,6 @@
 			}
 		}
 	}
-
-
-/////////////////////////////////////////////////////////
-/*
-want to edit something above without changing the actual Geodex object?
-feel free to put it here! just make sure it comes BEFORE Geodex.initialize();
-e.g. Geodex.map.outlineColorOptions = ['Red', 'Blue', 'Yellow'];
-see documentation on the H: drive for more information
-*/
-/////////////////////////////////////////////////////////
 
 /*
 --- set everything up! ---
