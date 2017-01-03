@@ -174,6 +174,7 @@
 			
 			// if user clicks "bookmark" icon link, add or remove record from saved list (determined by link class)
 			bookmarkLinkClick: function(linkClicked){
+				console.log('bookmark link clicked!');
 				var thisIsAddLink = $(linkClicked).hasClass('add-bookmark');
 				if(thisIsAddLink) {
 					$('#no-saved-records').empty();
@@ -236,6 +237,8 @@
 										$(this).parents('.list-group-item').css('background-color', '#ffffcc');
 										Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''));
 									});
+									$('.bookmark-link').off();
+									$('.attr-modal-link').off();
 									$('.bookmark-link').click(function() {
 										Geodex.bookmarks.bookmarkLinkClick(this);
 									});
@@ -481,6 +484,8 @@
 						$(this).parents('.list-group-item').css('background-color', '#ffffcc');
 						Geodex.map.showFeatureOutline($(this).attr('id').replace('show-outline-', ''));
 					});
+					$('.bookmark-link').off();
+					$('.attr-modal-link').off();
 					$('.bookmark-link').click(function() {
 						Geodex.bookmarks.bookmarkLinkClick(this);
 					});
