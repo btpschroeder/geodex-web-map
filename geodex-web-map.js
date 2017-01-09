@@ -170,7 +170,7 @@
 			
 			saved: [], // an array to store all of the user's saved records
 			
-			exportTableAttributes: ['SERIES_TIT', 'DATE', 'CATLOC'], // attribute fields that will show on csv export and printed list
+			exportTableAttributes: ['SERIES_TIT', 'DATE', 'CATLOC', 'RECORD', 'LOCATION', 'SCALE', 'GDX_SUB'], // attribute fields that will show on csv export and printed list
 			
 			// if user clicks "bookmark" icon link, add or remove record from saved list (determined by link class)
 			bookmarkLinkClick: function(linkClicked){
@@ -559,7 +559,7 @@
 							currentAttribute = Geodex.vocab.attributes[currentAttribute][0];
 						}
 						var tableRowHtml;
-						if (currentAttribute === "NautChartID" || currentAttribute === "OBJECTID") {
+						if (currentAttribute === "NautChartID" || currentAttribute === "OBJECTID" || currentAttribute === "GDX_FILE" || currentAttribute === "GDX_NUM" || currentAttribute === "RUN_DATE" || currentAttribute === "Shape_Area" || currentAttribute === "Shape_Length") {
 							// do nothing
 						} else if (currentValue === null || currentValue === "Not assigned" || currentValue === undefined) {
 							tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td><span class="null-value">Not assigned</span></td></tr>' );
@@ -909,8 +909,8 @@
 				Geodex.vocab.attributes["CATLOC"] = ["Catalog Location"];
 				Geodex.vocab.attributes["DATE"] = ["Date"];
 				Geodex.vocab.attributes["EDITION_NO"] = ["Edition Number"];
-				Geodex.vocab.attributes["GDX_FILE"] = ["GDX Series"];
-				Geodex.vocab.attributes["GDX_NUM"] = ["GDX File Number"];
+				//Geodex.vocab.attributes["GDX_FILE"] = ["GDX Series"];
+				//Geodex.vocab.attributes["GDX_NUM"] = ["GDX File Number"];
 				Geodex.vocab.attributes["GDX_SUB"] = ["GDX Subtype", Geodex.vocab.domains.subs];
 				Geodex.vocab.attributes["HOLD"] = ["Holdings"];
 				Geodex.vocab.attributes["ISO_TYPE"] = ["Isobar Type", Geodex.vocab.domains.isoType];
@@ -925,11 +925,11 @@
 				Geodex.vocab.attributes["PRODUCTION"] = ["Production", Geodex.vocab.domains.production];
 				Geodex.vocab.attributes["PUBLISHER"] = ["Publisher"];
 				Geodex.vocab.attributes["RECORD"] = ["Record"];
-				Geodex.vocab.attributes["RUN_DATE"] = ["Run Date"];
+				//Geodex.vocab.attributes["RUN_DATE"] = ["Run Date"];
 				Geodex.vocab.attributes["SCALE"] = ["Scale"];
 				Geodex.vocab.attributes["SERIES_TIT"] = ["Series"];
-				Geodex.vocab.attributes["Shape_Area"] = ["GIS Shape Area"];
-				Geodex.vocab.attributes["Shape_Length"] = ["GIS Shape Length"];
+				//Geodex.vocab.attributes["Shape_Area"] = ["GIS Shape Area"];
+				//Geodex.vocab.attributes["Shape_Length"] = ["GIS Shape Length"];
 				Geodex.vocab.attributes["X1"] = ["West"];
 				Geodex.vocab.attributes["X2"] = ["East"];
 				Geodex.vocab.attributes["Y1"] = ["North"];
