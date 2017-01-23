@@ -468,11 +468,11 @@
 					if(seriesSort.indexOf(s[i].properties[Geodex.series.field]) < 0) {
 						seriesSort.push(s[i].properties[Geodex.series.field]);
 					}
-					if (seriesSort.indexOf(null) >= 0)  {
-						var index = seriesSort.indexOf(null);
-						seriesSort[index] = Geodex.series.ifNull;
-					}
 				});
+				if (seriesSort.indexOf(null) >= 0)  {
+					var index = seriesSort.indexOf(null);
+					seriesSort[index] = Geodex.series.ifNull;
+				}
 				resultsHtml += ('<strong>' + seriesSort.length + '</strong> series.</p>')
 				$.each(seriesSort, function(i, v){
 					resultsHtml += ('<h3>' + v + '</h3>' + '<ul class="list-group">' + Geodex.search.makeResultsList(seriesSort[i], s) + '</ul>')
