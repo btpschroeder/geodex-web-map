@@ -559,9 +559,9 @@
 							currentAttribute = Geodex.vocab.attributes[currentAttribute][0];
 						}
 						var tableRowHtml;
-						if (currentAttribute === "NautChartID" || currentAttribute === "OBJECTID" || currentAttribute === "GDX_FILE" || currentAttribute === "GDX_NUM" || currentAttribute === "RUN_DATE" || currentAttribute === "Shape_Area" || currentAttribute === "Shape_Length") {
+						if (currentAttribute === "NautChartID" || currentAttribute === "OBJECTID" || currentAttribute === "GDX_FILE" || currentAttribute === "GDX_NUM" || currentAttribute === "RUN_DATE" || currentAttribute === "Shape_Area" || currentAttribute === "Shape_Length" || currentAttribute === Geodex.vocab.attributes["YEAR1_TYPE"][0] || currentAttribute === Geodex.vocab.attributes["YEAR2_TYPE"][0] || currentAttribute === Geodex.vocab.attributes["YEAR3_TYPE"][0] || currentAttribute === Geodex.vocab.attributes["YEAR4_TYPE"][0]) {
 							// do nothing
-						} else if (currentValue === null || currentValue === "Not assigned" || currentValue === undefined) {
+						} else if ((currentValue === null || currentValue === "Not assigned" || currentValue === undefined) && (currentAttribute !== Geodex.vocab.attributes["YEAR1"][0] && currentAttribute !== Geodex.vocab.attributes["YEAR2"][0] && currentAttribute !== Geodex.vocab.attributes["YEAR3"][0] && currentAttribute !== Geodex.vocab.attributes["YEAR4"][0])) {
 							tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td><span class="null-value">Not assigned</span></td></tr>' );
 							if (i === 0 || i <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
                                     $('#attr-table-1>tbody').append(tableRowHtml);
@@ -569,8 +569,31 @@
 								$('#attr-table-2>tbody').append(tableRowHtml);
 							}
 						} else {
-							tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
-							if (i === 0 || i <= ((attrKeys.length / 2) - 1)) { // throw the first half of all attributes in table #1
+							if (currentAttribute === Geodex.vocab.attributes["YEAR1"][0] || currentAttribute === Geodex.vocab.attributes["YEAR2"][0] || currentAttribute === Geodex.vocab.attributes["YEAR3"][0] || currentAttribute === Geodex.vocab.attributes["YEAR4"][0]) {
+								if(currentValue === null) {
+									tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td><span class="null-value">Not assigned</span></td></tr>' );
+								} else {
+									// process the years attributes a little differently, for formatting purposes
+									switch(currentAttribute) {
+										case "Year 1":
+											var yearType = "YEAR1_TYPE";
+											break;
+										case "Year 2":
+											var yearType = "YEAR2_TYPE";
+											break;
+										case "Year 3":
+											var yearType = "YEAR3_TYPE";
+											break;
+										case "Year 4":
+											var yearType = "YEAR4_TYPE";
+											break;
+									}
+									tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + Geodex.vocab.domains.yearType[attr[yearType]] + ' ' + currentValue + '</td></tr>' );
+								}
+							} else {
+								tableRowHtml = ( '<tr><td><strong>' + currentAttribute + '</strong></td><td>' + currentValue + '</td></tr>' );
+							}
+							if (i === 0 || i <= (((attrKeys.length - 4) / 2) - 1)) { // throw the first half of all attributes in table #1
 								$('#attr-table-1>tbody').append(tableRowHtml);
 							} else  { // throw the rest in table #2
 								$('#attr-table-2>tbody').append(tableRowHtml);
