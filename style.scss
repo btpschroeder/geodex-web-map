@@ -255,7 +255,7 @@ tbody {
 --- Custom controls ---
 */
 
-.outline-control {
+.outline-control, .coordinate-search-control {
 	font-size: 0.9em;
 	background-color: white;
 	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
@@ -265,6 +265,14 @@ tbody {
 	p, a {
 		font-size: 1.33em;
 		margin-bottom: 0.5em;
+	}
+}
+
+.agsl-control {
+	width: 200px;
+	
+	img {
+		width: 100%;
 	}
 }
 
@@ -413,7 +421,7 @@ tbody {
 		padding-top: ($toggleHeight - ($toggleHeight - 1));
 	}
 	
-	.outline-control {
+	.outline-control, .coordinate-search-control {
 		display: none;
 	}
 

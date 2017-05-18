@@ -11,6 +11,7 @@
 			this.series.getAll(); // populate the "series" drop-down dynamically
 			this.publishers.getAll(); // populate the "publsihers" drop-down dynamically
 			this.map.initialize(); // initialize the map and run all functions that entails
+			this.bookmarks.generateExportFields(); // dymaically create list of fields users may customize export report with
 			String.prototype.replaceAll = function(target, replacement) { // function needed to get rid of all apostrophes from search results (apostrophes break dynamically generated SQL)
 				return this.split(target).join(replacement);
 			};
@@ -172,6 +173,8 @@
 			
 			exportTableAttributes: ['SERIES_TIT', 'DATE', 'CATLOC', 'RECORD', 'LOCATION', 'SCALE', 'GDX_SUB'], // attribute fields that will show on csv export and printed list
 			
+			defaultExportTableAttributes: ['SERIES_TIT', 'DATE', 'CATLOC', 'RECORD', 'LOCATION', 'SCALE', 'GDX_SUB'],
+			
 			// if user clicks "bookmark" icon link, add or remove record from saved list (determined by link class)
 			bookmarkLinkClick: function(linkClicked){
 				console.log('bookmark link clicked!');
@@ -250,6 +253,10 @@
 						});
 					});
 				}
+			},
+			
+			generateExportFields: function() {
+				
 			},
 
 			// dynamically update the export table, used for the csv export and printed table
@@ -383,6 +390,12 @@
 				// does the user only want records in the AGSL holdings?
 				if($('#agsl-holdings-option').prop('checked')) {
 					query += ' AND HOLD >= 1';
+				}
+				// has the user entered anything in "Name Contains" field?
+				if($('#name-contains').val() !== '') {
+					var nameVal = ($('#name-contains').val()).toUpperCase();
+					console.log(nameVal);
+					query += " AND (LOCATION LIKE '%" + nameVal + "%' OR RECORD LIKE '%" + nameVal + "%')";
 				}
 				console.log(query);
 				return query;
@@ -609,10 +622,20 @@
 		map: { // all of the stuff related to the map itself -- most of the Leaflet stuff will be here
 			// url to map service
 			service: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/GeodexWebMapService/MapServer/0',
-			// adds Esri Leaflet geocoder (through plug-in)
+			// adds geocoder (through plug-in)
 			addGeocoder: function() {
-				var geocoderControl = L.esri.Geocoding.geosearch();
-				geocoderControl.addTo(theMap);
+				/*var geocoderControl = L.esri.Geocoding.geosearch();
+				geocoderControl.addTo(theMap);*/
+				/*var provider = new GoogleProvider({
+					params: {
+						key: ''
+					}
+				});*/
+				var provider = new GeoSearch.OpenStreetMapProvider();
+				var searchControl = new GeoSearch.GeoSearchControl({
+					provider: provider,
+				});
+				searchControl.addTo(theMap);
 			},
 			// when user first loads the page, the map is set to this view
 			defaultView: {
@@ -679,6 +702,7 @@
 				Geodex.map.basemaps.load();
 				Geodex.map.addGeocoder();
 				Geodex.map.addOutlineControl();
+				Geodex.map.addAgslLogo();
 				$('#current-zoom-level').html(Geodex.map.defaultView.zoom);
 				theMap.on('zoomend', function(){
 					var currentZoom = theMap.getZoom();
@@ -733,6 +757,21 @@
 					Geodex.map.zoomLock = Geodex.map.panZoomOptions[userOption].zoomlock;
 					Geodex.map.panLock = Geodex.map.panZoomOptions[userOption].panlock;
 				});
+			},
+			// function to add AGSL logo to se corner of map frame
+			addAgslLogo: function () {
+				var agslControl = L.Control.extend({
+					options: {
+						position: 'bottomright'
+					},
+					onAdd: function(theMap) {
+						var container = L.DomUtil.create('div', 'agsl-control');
+						return container;
+					}
+				});
+				theMap.addControl(new agslControl());
+				var agslLogoHtml = '<a href="http://uwm.edu/" target="_blank"><img src="/agsl/geodex-web-map/uwm_logo.png" title="University of Wisconsin-Milwaukee" /></a>';
+				$('.agsl-control').html(agslLogoHtml);
 			},
 			// auto-pan options available to the user, available in the custom control
 			panZoomOptions: [

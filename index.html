@@ -6,8 +6,9 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 		<title>Geodex Web Map</title>
 		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link href="leaflet/plugins/geosearch/style.css" rel="stylesheet">
 		<link href="leaflet/leaflet.css" rel="stylesheet">
-		<link href="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.css" rel="stylesheet">
+		<!--<link href="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.css" rel="stylesheet">-->
 		<link href="style.css" rel="stylesheet">
 		<script>
 			// whole thing is kaputt in IE without this line
@@ -69,7 +70,7 @@
 			<div class="row" id="map-row">
 				<section class="col-lg-4" id="search-column">
 					<a href="#" class="collapse-link"><i class="fa fa-chevron-up fa-3x" aria-hidden="true"></i></a>
-					<h1>AGSL Geodex Web Map &mdash; α</h1>
+					<h1>AGSL Geodex Web Map</h1>
 					<ul class="nav nav-tabs">
 						<li role="presentation" class="active"><a href="#search-parameters" id="tab-search" data-toggle="tab"><i class="fa fa-search" aria-hidden="true"></i> <span class="tab-label">Search</span></a></li>
 						<li role="presentation"><a href="#search-results" id="tab-results" data-toggle="tab"><i class="fa fa-list" aria-hidden="true"></i> <span class="tab-label">Results</span> (<span id="num-results">0</span>)</a></li>
@@ -78,7 +79,7 @@
 					</ul>
 					<div class="tab-content">
 						<div role="tabpanel" id="search-parameters" class="tab-pane fade in active">
-							<form>
+							<form onsubmit="return false;">
 								<h2>Extent Search Type</h2>
 								<div class="radio">
 									<label>
@@ -105,6 +106,8 @@
 										Exclude large maps relative to current zoom level (<span id="current-zoom-level"></span>)
 									</label>
 								</div>
+								<h2>Name Contains</h2>
+								<input type="text" id="name-contains" value="">
 								<h2>Years</h2>
 								<div class="form-group">
 									<select name="years-from" id="years-from" value="years-from"></select> to <select name="years-from" id="years-to" value="years-to"></select>
@@ -125,6 +128,7 @@
 										<option>Loading publisher list...</option>
 									</select>
 								</div>
+								<div id="publishers-to-be-searched"></div>
 								<h2>Availability</h2>
 								<div class="form-group">
 									<div class="checkbox" id="agsl-holdings">
@@ -134,7 +138,6 @@
 										</label>
 									</div>
 								</div>
-								<div id="publishers-to-be-searched"></div>
 								<button id="search-geodex-button" type="button" class="btn btn-primary">Search Geodex</button>
 							</form>
 						</div>
@@ -150,6 +153,8 @@
 							<p id="no-saved-records">You have not bookmarked any records.</p>
 							<!-- this table is hidden from the user unless they're printing! -->
 							<table id="export-table" class="table table-bordered table-condensed"></table>
+							<div id="export-fields">
+							</div>
 						</div>
 						<div role="tabpanel" class="tab-pane fade" id="help">
 							<h2>Geodex Help</h2>
@@ -219,7 +224,8 @@
 		<script src="bootstrap/js/bootstrap.min.js"></script>
 		<script src="leaflet/leaflet.js"></script>
 		<script src="leaflet/plugins/esri-leaflet/esri-leaflet.js"></script>
-		<script src="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
+		<!--<script src="leaflet/plugins/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>-->
+		<script src="leaflet/plugins/geosearch/geosearch.js"></script>
 		<script src="tableexport/FileSaver.js"></script>
 		<script src="tableexport/TableExport.js"></script>
 		<script src="geodex-web-map.js"></script>
